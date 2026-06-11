@@ -1,0 +1,2168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartClinic - Smart Queue for Better Care</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      :root {
+        --teal: #009e78;
+        --teal-dark: #007a5c;
+        --navy: #0a2a3b;
+        --amber: #f59e0b;
+        --red: #ef4444;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        background: linear-gradient(145deg, #0b2b38, #071e28);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .wrap {
+        max-width: 1300px;
+        width: 100%;
+        background: #fff;
+        border-radius: 32px;
+        overflow: hidden;
+        display: flex;
+        flex-wrap: wrap;
+        box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.25);
+      }
+      .left {
+        flex: 1.2;
+        position: relative;
+        background: url("https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1200&q=85")
+          center/cover no-repeat;
+        min-height: 560px;
+      }
+      .left::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          125deg,
+          rgba(10, 42, 59, 0.78) 0%,
+          rgba(0, 100, 80, 0.55) 70%,
+          rgba(10, 42, 59, 0.88) 100%
+        );
+        z-index: 1;
+      }
+      .left::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(0, 200, 150, 0.08) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 200, 150, 0.08) 1px, transparent 1px);
+        background-size: 42px 42px;
+        z-index: 2;
+      }
+      .lc {
+        position: relative;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+        padding: 48px 42px;
+        color: #fff;
+      }
+      .logo-area {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 52px;
+      }
+      .logo-pill {
+        background: rgba(255, 255, 255, 0.96);
+        border-radius: 16px;
+        padding: 7px 14px;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 52px;
+      }
+      .logo-pill img {
+        height: 36px;
+        width: auto;
+        object-fit: contain;
+      }
+      .logo-text {
+        font-size: 1.8rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        background: linear-gradient(135deg, #fff, #c0fff0);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      h1 {
+        font-size: 2.7rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 16px;
+        letter-spacing: -0.02em;
+      }
+      h1 span {
+        color: #5ee0c4;
+        border-bottom: 3px solid rgba(94, 224, 196, 0.45);
+      }
+      .desc {
+        font-size: 0.97rem;
+        line-height: 1.55;
+        color: rgba(255, 255, 255, 0.8);
+        max-width: 86%;
+        margin-bottom: 30px;
+      }
+      .feats {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .feat {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.88);
+        background: rgba(255, 255, 255, 0.06);
+        padding: 6px 14px 6px 7px;
+        border-radius: 60px;
+        width: fit-content;
+      }
+      .feat-ico {
+        width: 34px;
+        height: 34px;
+        background: rgba(0, 200, 150, 0.2);
+        border: 1px solid rgba(94, 224, 196, 0.4);
+        border-radius: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+      }
+      .foot {
+        margin-top: 40px;
+        font-size: 0.67rem;
+        opacity: 0.55;
+        letter-spacing: 0.3px;
+      }
+      .right {
+        flex: 1;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 42px;
+      }
+      .box {
+        width: 100%;
+        max-width: 460px;
+      }
+      .box h2 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #0b2b38;
+        letter-spacing: -0.3px;
+      }
+      .box .sub {
+        color: #5f7f8c;
+        font-size: 0.88rem;
+        margin-top: 5px;
+        margin-bottom: 22px;
+      }
+      .slideshow-container {
+        overflow: hidden;
+        position: relative;
+      }
+      .mySlides {
+        width: 100%;
+        flex-shrink: 0;
+        padding: 0;
+        box-sizing: border-box;
+        display: none;
+      }
+      .mySlides.active {
+        display: block;
+      }
+      .dots {
+        text-align: center;
+        margin-top: 15px;
+      }
+      .dot {
+        height: 10px;
+        width: 10px;
+        margin: 0 4px;
+        border-radius: 50%;
+        display: inline-block;
+        background: #bbb;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+      .dot.active {
+        background: #009e78;
+        transform: scale(1.3);
+      }
+      .slide-label {
+        text-align: center;
+        font-size: 0.85rem;
+        color: #5f7f8c;
+        margin-top: 8px;
+        font-weight: 600;
+      }
+      .qr-section {
+        background: #f0fdf9;
+        border: 1px solid #bbe9df;
+        border-radius: 22px;
+        padding: 20px;
+        margin-bottom: 10px;
+      }
+      .qr-section h3 {
+        font-size: 1.1rem;
+        color: var(--teal);
+        margin-bottom: 15px;
+        text-align: center;
+      }
+      #qr-reader-container {
+        width: 100%;
+        min-height: 300px;
+        border: 2px dashed #cce5e0;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        position: relative;
+        overflow: hidden;
+      }
+      #qr-video {
+        width: 100%;
+        max-width: 400px;
+        border-radius: 12px;
+        display: none;
+      }
+      #qr-canvas {
+        display: none;
+      }
+      .qr-placeholder {
+        text-align: center;
+        padding: 40px 20px;
+        color: #7a9a96;
+      }
+      .qr-placeholder svg {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 15px;
+        opacity: 0.5;
+      }
+      .qr-controls {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 15px;
+        flex-wrap: wrap;
+      }
+      .qr-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 10px;
+        font-family: "Inter", sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .qr-btn-primary {
+        background: var(--teal);
+        color: #fff;
+      }
+      .qr-btn-primary:hover {
+        background: var(--teal-dark);
+      }
+      .qr-btn-secondary {
+        background: #e8f5f2;
+        color: var(--teal-dark);
+        border: 1.5px solid #cce5e0;
+      }
+      .qr-btn-secondary:hover {
+        background: #d1ebe6;
+      }
+      .qr-result {
+        margin-top: 15px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: none;
+      }
+      .qr-result.success {
+        background: #d1fae5;
+        color: #065f46;
+        border-left: 4px solid #10b981;
+        display: block;
+      }
+      .qr-result.error {
+        background: #fee2e2;
+        color: #991b1b;
+        border-left: 4px solid #ef4444;
+        display: block;
+      }
+      .qr-result.scanning {
+        background: #fef3c7;
+        color: #92400e;
+        border-left: 4px solid #f59e0b;
+        display: block;
+      }
+      .scan-status {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 10px;
+        font-size: 0.8rem;
+        color: #5f7f8c;
+      }
+      .scan-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #ccc;
+      }
+      .scan-dot.active {
+        background: #10b981;
+        animation: pulse 1.5s infinite;
+      }
+      .scan-dot.error {
+        background: #ef4444;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+      .manual-entry {
+        margin-top: 15px;
+        display: flex;
+        gap: 8px;
+      }
+      .manual-entry input {
+        flex: 1;
+        padding: 10px 14px;
+        border: 1.5px solid #e2edf0;
+        border-radius: 10px;
+        font-family: "Inter", sans-serif;
+        font-size: 0.85rem;
+        outline: none;
+      }
+      .manual-entry input:focus {
+        border-color: var(--teal);
+        box-shadow: 0 0 0 3px rgba(0, 158, 120, 0.1);
+      }
+      .queue-card {
+        background: white;
+        padding: 30px;
+        border-radius: 22px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2edf0;
+      }
+      .queue-card h3 {
+        color: #0b2b38;
+        margin-bottom: 10px;
+      }
+      .queue-number {
+        font-size: 60px;
+        font-weight: 800;
+        color: var(--teal);
+        margin: 20px 0;
+        font-family: "Inter", sans-serif;
+      }
+      .queue-btn {
+        padding: 12px 30px;
+        font-size: 16px;
+        border: none;
+        border-radius: 44px;
+        background: var(--teal);
+        color: white;
+        cursor: pointer;
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+        transition: all 0.2s;
+        box-shadow: 0 8px 22px rgba(0, 158, 120, 0.28);
+      }
+      .queue-btn:hover {
+        background: var(--teal-dark);
+        transform: scale(0.985);
+      }
+      .reg-box {
+        width: 100%;
+      }
+      .reg-box h2 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #0b2b38;
+        margin-bottom: 5px;
+      }
+      .field {
+        margin-bottom: 14px;
+      }
+      .field label {
+        display: block;
+        font-size: 0.69rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #4f6a72;
+        margin-bottom: 5px;
+      }
+      .field input,
+      .field select,
+      .field textarea {
+        width: 100%;
+        padding: 11px 14px;
+        font-size: 0.9rem;
+        font-family: "Inter", sans-serif;
+        background: #fff;
+        border: 1.5px solid #e2edf0;
+        border-radius: 12px;
+        outline: none;
+        transition: all 0.2s;
+        color: #1e2f3a;
+      }
+      .field input:focus,
+      .field select:focus,
+      .field textarea:focus {
+        border-color: var(--teal);
+        box-shadow: 0 0 0 4px rgba(0, 158, 120, 0.1);
+      }
+      .field input::placeholder,
+      .field textarea::placeholder {
+        color: #aac4cc;
+      }
+      .hint {
+        font-size: 0.7rem;
+        color: #7a95a8;
+        margin-top: 4px;
+      }
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .sign-btn {
+        width: 100%;
+        background: var(--teal);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.95rem;
+        padding: 13px;
+        border: none;
+        border-radius: 44px;
+        cursor: pointer;
+        font-family: "Inter", sans-serif;
+        margin-top: 8px;
+        box-shadow: 0 8px 22px rgba(0, 158, 120, 0.28);
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .sign-btn:hover {
+        background: var(--teal-dark);
+        transform: scale(0.985);
+      }
+      .clear-btn {
+        padding: 12px 18px;
+        background: transparent;
+        border: 1.5px solid #d8e8e6;
+        border-radius: 10px;
+        cursor: pointer;
+        font-family: "Inter", sans-serif;
+        color: #7a95a8;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+      }
+      .clear-btn:hover {
+        background: #f0f7f6;
+        border-color: var(--teal);
+        color: var(--teal);
+      }
+      .alert {
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-bottom: 12px;
+        display: none;
+      }
+      .alert.show {
+        display: block;
+      }
+      .alert-warning {
+        background: #fef3c7;
+        color: #92400e;
+        border-left: 3px solid #f59e0b;
+      }
+      .alert-error {
+        background: #fee2e2;
+        color: #991b1b;
+        border-left: 3px solid #ef4444;
+      }
+      .alert-success {
+        background: #d1fae5;
+        color: #065f46;
+        border-left: 3px solid #10b981;
+      }
+      .hidden {
+        display: none !important;
+      }
+      .qr-card-output {
+        background: #f0fdf9;
+        border: 1.5px solid #bbe9df;
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        margin-top: 15px;
+      }
+      .qr-card-output h4 {
+        color: var(--teal);
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+      }
+      .card-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+      }
+      .reg-link {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 0.83rem;
+        color: #7c9aa6;
+      }
+      .reg-link a {
+        color: var(--teal);
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .ticket-display {
+        background: #f0fdf9;
+        border: 2px solid var(--teal);
+        border-radius: 16px;
+        padding: 20px;
+        margin-top: 15px;
+        text-align: center;
+        display: none;
+      }
+      .ticket-display.show {
+        display: block;
+      }
+      .ticket-display h4 {
+        color: var(--teal);
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+      }
+      .ticket-number {
+        font-size: 48px;
+        font-weight: 800;
+        color: var(--teal);
+        margin: 10px 0;
+      }
+      .ticket-info {
+        font-size: 0.8rem;
+        color: #5f7f8c;
+      }
+      .queue-list {
+        background: #fff;
+        border: 1px solid #e2edf0;
+        border-radius: 12px;
+        padding: 15px;
+        margin-top: 15px;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .queue-list h4 {
+        font-size: 0.85rem;
+        color: #0b2b38;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      .queue-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin-bottom: 6px;
+        font-size: 0.8rem;
+      }
+      .queue-item.registered {
+        background: #f0fdf9;
+        border-left: 3px solid var(--teal);
+      }
+      .queue-item.walkin {
+        background: #fefce8;
+        border-left: 3px solid #eab308;
+      }
+      .queue-item .q-num {
+        font-weight: 700;
+        color: var(--teal);
+        font-size: 0.9rem;
+      }
+      .queue-item .q-name {
+        color: #1e2f3a;
+        font-weight: 600;
+      }
+      .queue-item .q-type {
+        font-size: 0.7rem;
+        padding: 2px 8px;
+        border-radius: 20px;
+        background: #e2edf0;
+        color: #5f7f8c;
+      }
+
+      /* ===== PATIENT DASHBOARD ===== */
+      .dashboard-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(11, 43, 56, 0.97);
+        z-index: 1000;
+        overflow-y: auto;
+        display: none;
+      }
+      .dashboard-overlay.show {
+        display: block;
+      }
+      .dashboard-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 30px 20px;
+      }
+      .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .dashboard-header h1 {
+        color: #fff;
+        font-size: 1.8rem;
+        margin: 0;
+      }
+      .dashboard-header .back-btn {
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        color: #fff;
+        font-family: "Inter", sans-serif;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .dashboard-header .back-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 24px;
+      }
+      .dash-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .dash-card {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 24px;
+        color: #fff;
+      }
+      .dash-card h3 {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: rgba(255, 255, 255, 0.6);
+        margin-bottom: 16px;
+      }
+      .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--teal), #0b2b38);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 16px;
+      }
+      .profile-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+      .profile-id {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.5);
+        font-family: monospace;
+        margin-bottom: 12px;
+      }
+      .profile-detail {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .profile-detail svg {
+        width: 14px;
+        height: 14px;
+        opacity: 0.6;
+      }
+      .dash-main {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .dash-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .dash-tab {
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: none;
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.6);
+        font-family: "Inter", sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .dash-tab:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+      }
+      .dash-tab.active {
+        background: var(--teal);
+        color: #fff;
+      }
+      .dash-tab-content {
+        display: none;
+      }
+      .dash-tab-content.active {
+        display: block;
+      }
+      .appointment-card {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 12px;
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .appointment-card .appt-info h4 {
+        font-size: 1rem;
+        margin-bottom: 6px;
+      }
+      .appointment-card .appt-info p {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin-bottom: 4px;
+      }
+      .appt-status {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+      .appt-status.upcoming {
+        background: rgba(0, 158, 120, 0.2);
+        color: #5ee0c4;
+      }
+      .appt-status.completed {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.6);
+      }
+      .appt-status.cancelled {
+        background: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+      }
+      .medication-card {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 12px;
+        color: #fff;
+      }
+      .medication-card h4 {
+        font-size: 1rem;
+        margin-bottom: 4px;
+        color: #5ee0c4;
+      }
+      .medication-card .med-date {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 12px;
+      }
+      .med-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 0.85rem;
+      }
+      .med-item:last-child {
+        border-bottom: none;
+      }
+      .med-item .med-name {
+        font-weight: 600;
+      }
+      .med-item .med-dose {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.75rem;
+      }
+      .med-item .med-status {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+      }
+      .med-status.active {
+        background: rgba(0, 158, 120, 0.2);
+        color: #5ee0c4;
+      }
+      .med-status.completed {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.5);
+      }
+      .booking-form {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 24px;
+        color: #fff;
+      }
+      .booking-form h3 {
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+      }
+      .booking-form .field label {
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .booking-form .field input,
+      .booking-form .field select,
+      .booking-form .field textarea {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.15);
+        color: #fff;
+      }
+      .booking-form .field input:focus,
+      .booking-form .field select:focus,
+      .booking-form .field textarea:focus {
+        border-color: var(--teal);
+        box-shadow: 0 0 0 4px rgba(0, 158, 120, 0.15);
+      }
+      .booking-form .field input::placeholder,
+      .booking-form .field textarea::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+      }
+      .booking-form .sign-btn {
+        margin-top: 16px;
+      }
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: rgba(255, 255, 255, 0.4);
+      }
+      .empty-state svg {
+        width: 48px;
+        height: 48px;
+        margin-bottom: 16px;
+        opacity: 0.3;
+      }
+      .empty-state p {
+        font-size: 0.9rem;
+      }
+      .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .stat-box {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 16px;
+        text-align: center;
+        color: #fff;
+      }
+      .stat-box .stat-num {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #5ee0c4;
+      }
+      .stat-box .stat-label {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 4px;
+      }
+      .qr-display-small {
+        width: 120px;
+        height: 120px;
+        margin: 10px auto;
+        background: #fff;
+        border-radius: 12px;
+        padding: 8px;
+      }
+      .qr-display-small img,
+      .qr-display-small canvas {
+        width: 100% !important;
+        height: 100% !important;
+      }
+      @media (max-width: 900px) {
+        .left {
+          display: none;
+        }
+        .right {
+          border-radius: 0;
+          padding: 36px 20px;
+        }
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+        .dashboard-grid {
+          grid-template-columns: 1fr;
+        }
+        .stats-row {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 520px) {
+        .qr-controls {
+          flex-direction: column;
+        }
+        .qr-controls .qr-btn {
+          width: 100%;
+        }
+        .manual-entry {
+          flex-direction: column;
+        }
+        .card-actions {
+          flex-direction: column;
+        }
+        .appointment-card {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+        }
+      }
+    </style>
+    <base target="_blank" />
+  </head>
+  <body>
+    <!-- ===== MAIN APP ===== -->
+    <div class="wrap" id="main-app">
+      <!-- LEFT PANEL -->
+      <div class="left">
+        <div class="lc">
+          <div>
+            <div class="logo-area">
+              <div class="logo-pill">
+                <img
+                  src="https://i.postimg.cc/J7PDSJ7Z/Whats-App-Image-2026-05-15-at-14-28-51.jpg"
+                  alt="SmartClinic"
+                  onerror="
+                    this.style.display = 'none';
+                    this.nextElementSibling.style.display = 'flex';
+                  "
+                />
+                <span style="display: none; align-items: center">
+                  <svg width="34" height="34" viewBox="0 0 32 32" fill="none">
+                    <rect width="32" height="32" rx="8" fill="#009e78" />
+                    <rect
+                      x="13"
+                      y="5"
+                      width="6"
+                      height="22"
+                      rx="3"
+                      fill="white"
+                    />
+                    <rect
+                      x="5"
+                      y="13"
+                      width="22"
+                      height="6"
+                      rx="3"
+                      fill="white"
+                    />
+                  </svg>
+                </span>
+              </div>
+              <div class="logo-text">SmartClinic</div>
+            </div>
+            <h1>Smart Queue<br />for <span>Better Care</span></h1>
+            <p class="desc">
+              Fast, convenient, & contactless — Your time matters, and so do
+              you.
+            </p>
+            <div class="feats">
+              <div class="feat">
+                <div class="feat-ico">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                  </svg>
+                </div>
+                Scan & go — no more waiting in line
+              </div>
+              <div class="feat">
+                <div class="feat-ico">📡</div>
+                Walk-in? No problem — get a queue number on arrival
+              </div>
+              <div class="feat">
+                <div class="feat-ico">⏱️</div>
+                Register appointments in advance and skip the line
+              </div>
+            </div>
+          </div>
+          <div class="foot">SmartClinic · Group 2 · MUT DSOF300/DVSF300</div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL -->
+      <div class="right">
+        <div class="box">
+          <h2>Fast, convenient, & contactless</h2>
+          <p class="sub">Choose an option below to get started</p>
+
+          <!-- SLIDESHOW -->
+          <div class="slideshow-container">
+            <!-- SLIDE 1: QR SCANNER -->
+            <div class="mySlides active" id="slide-qr">
+              <div class="qr-section">
+                <h3>🔍 Scan QR-Code</h3>
+                <div id="qr-reader-container">
+                  <div class="qr-placeholder" id="qr-placeholder">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
+                      <path
+                        d="M3 7V5a2 2 0 012-2h2M3 17v2a2 2 0 002 2h2M21 7V5a2 2 0 00-2-2h-2M21 17v2a2 2 0 01-2 2h-2M9 9h6v6H9z"
+                      />
+                    </svg>
+                    <p>Camera is off</p>
+                    <p style="font-size: 0.75rem; margin-top: 5px">
+                      Click "Start Camera" to begin scanning
+                    </p>
+                  </div>
+                  <video id="qr-video" playsinline></video>
+                  <canvas id="qr-canvas"></canvas>
+                </div>
+
+                <div class="scan-status">
+                  <div class="scan-dot" id="scan-dot"></div>
+                  <span id="scan-text">Ready to scan</span>
+                </div>
+
+                <div class="qr-result" id="qr-result"></div>
+
+                <div class="qr-controls">
+                  <button
+                    class="qr-btn qr-btn-primary"
+                    id="btn-start-camera"
+                    onclick="startCamera()"
+                  >
+                    📷 Start Camera
+                  </button>
+                  <button
+                    class="qr-btn qr-btn-secondary"
+                    id="btn-stop-camera"
+                    onclick="stopCamera()"
+                    style="display: none"
+                  >
+                    ⏹ Stop
+                  </button>
+                  <button class="qr-btn qr-btn-secondary" onclick="captureQR()">
+                    📸 Capture
+                  </button>
+                </div>
+
+                <div class="manual-entry">
+                  <input
+                    type="text"
+                    id="manual-pid"
+                    placeholder="Enter Patient ID (e.g., SC-001)"
+                  />
+                  <button
+                    class="qr-btn qr-btn-primary"
+                    onclick="manualCheckin()"
+                  >
+                    Check In
+                  </button>
+                </div>
+              </div>
+              <div class="slide-label">
+                Scan your patient QR code to check in
+              </div>
+            </div>
+
+            <!-- SLIDE 2: WALK-IN QUEUE -->
+            <div class="mySlides" id="slide-queue">
+              <div class="queue-card">
+                <h3>Walk-in & Get Ticket</h3>
+                <div class="queue-number" id="queue-number">A001</div>
+                <button class="queue-btn" onclick="nextWalkinTicket()">
+                  Get Next Ticket
+                </button>
+
+                <div class="ticket-display" id="walkin-ticket-display">
+                  <h4>🎫 Your Ticket</h4>
+                  <div class="ticket-number" id="walkin-ticket-num">A001</div>
+                  <div class="ticket-info" id="walkin-ticket-info">
+                    Position: #1 | Est. wait: 0 min
+                  </div>
+                </div>
+              </div>
+              <div class="slide-label">
+                Get your queue number for walk-in visits
+              </div>
+            </div>
+
+            <!-- SLIDE 3: REGISTRATION -->
+            <div class="mySlides" id="slide-register">
+              <div class="reg-box">
+                <h2>Register & Book Online</h2>
+                <p class="sub">Fields marked * are required</p>
+
+                <div id="reg-alert" class="alert"></div>
+
+                <div id="reg-form">
+                  <div class="form-row">
+                    <div class="field">
+                      <label>Full Name *</label>
+                      <input
+                        id="r-name"
+                        type="text"
+                        placeholder="e.g. Zanele Dlamini"
+                      />
+                    </div>
+                    <div class="field">
+                      <label>SA ID Number *</label>
+                      <input
+                        id="r-id"
+                        type="text"
+                        placeholder="13-digit ID"
+                        maxlength="13"
+                        oninput="onIdInput()"
+                      />
+                      <div class="hint">
+                        Enter your full 13-digit South African ID
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="field">
+                      <label>Date of Birth</label>
+                      <input id="r-dob" type="date" readonly />
+                    </div>
+                    <div class="field">
+                      <label>Contact Number</label>
+                      <input
+                        id="r-contact"
+                        type="tel"
+                        placeholder="073 456 7890"
+                      />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Email</label>
+                    <input
+                      id="r-email"
+                      type="email"
+                      placeholder="email@example.com"
+                    />
+                  </div>
+                  <div style="display: flex; gap: 10px; margin-top: 4px">
+                    <button
+                      class="sign-btn"
+                      style="flex: 1"
+                      onclick="doRegister()"
+                    >
+                      ✅ Register & Get Ticket
+                    </button>
+                    <button class="clear-btn" onclick="clearForm()">
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Registration Success + Ticket -->
+                <div id="card-result" class="hidden">
+                  <div class="alert alert-success show">
+                    ✅ Registration successful! Your ticket is ready.
+                  </div>
+
+                  <div class="ticket-display show" id="reg-ticket-display">
+                    <h4>🎫 Your Queue Ticket</h4>
+                    <div class="ticket-number" id="reg-ticket-num">SC-001</div>
+                    <div class="ticket-info" id="reg-ticket-info">
+                      Position: #1 | Est. wait: 0 min | Dr: —
+                    </div>
+                  </div>
+
+                  <div class="qr-card-output">
+                    <h4>🏥 SMARTCLINIC - OFFICIAL CLINIC CARD</h4>
+                    <div id="qr-render"></div>
+                    <div
+                      style="margin-top: 10px; font-weight: 700; color: #0b2b38"
+                      id="card-name"
+                    ></div>
+                    <div
+                      style="font-size: 0.8rem; color: #5f7f8c"
+                      id="card-pid"
+                    ></div>
+                    <div
+                      style="font-size: 0.75rem; color: #7a95a8"
+                      id="card-idnum"
+                    ></div>
+                    <div
+                      style="font-size: 0.75rem; color: #7a95a8"
+                      id="card-dob"
+                    ></div>
+                  </div>
+                  <div class="card-actions">
+                    <button
+                      class="sign-btn"
+                      style="flex: 1"
+                      onclick="downloadCard()"
+                    >
+                      ⬇ Download PDF
+                    </button>
+                    <button class="clear-btn" onclick="goToDashboard()">
+                      🏠 Go to My Dashboard
+                    </button>
+                    <button class="clear-btn" onclick="regAnother()">
+                      Register Another
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="slide-label">
+                Register as a new patient and get your queue ticket
+              </div>
+            </div>
+          </div>
+
+          <!-- DOTS -->
+          <div class="dots">
+            <span class="dot active" onclick="currentSlide(1)"></span>
+            <span class="dot" onclick="currentSlide(2)"></span>
+            <span class="dot" onclick="currentSlide(3)"></span>
+          </div>
+
+          <!-- LIVE QUEUE LIST -->
+          <div class="queue-list" id="queue-list-container">
+            <h4>📋 Live Queue (<span id="queue-count">0</span> waiting)</h4>
+            <div id="queue-items"></div>
+          </div>
+
+          <div class="reg-link">
+            <a href="#" onclick="alert('FAQ coming soon!')">F.A.Q ?</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PATIENT DASHBOARD OVERLAY ===== -->
+    <div class="dashboard-overlay" id="dashboard-overlay">
+      <div class="dashboard-container">
+        <div class="dashboard-header">
+          <h1>🏥 My SmartClinic Dashboard</h1>
+          <button class="back-btn" onclick="closeDashboard()">
+            ← Back to Home
+          </button>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- SIDEBAR -->
+          <div class="dash-sidebar">
+            <!-- Profile Card -->
+            <div class="dash-card">
+              <h3>👤 My Profile</h3>
+              <div class="profile-avatar" id="dash-avatar">👤</div>
+              <div class="profile-name" id="dash-name">Patient Name</div>
+              <div class="profile-id" id="dash-pid">SC-000</div>
+              <div class="profile-detail">
+                <svg
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <rect x="2" y="5" width="20" height="14" rx="2" />
+                  <path d="M2 10h20" />
+                </svg>
+                <span id="dash-id">ID: —</span>
+              </div>
+              <div class="profile-detail">
+                <svg
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"
+                  />
+                </svg>
+                <span id="dash-contact">—</span>
+              </div>
+              <div class="profile-detail">
+                <svg
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <path d="M16 2v4M8 2v4M3 10h18" />
+                </svg>
+                <span id="dash-dob">DOB: —</span>
+              </div>
+              <div class="profile-detail">
+                <svg
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                  />
+                  <path d="M22 6l-10 7L2 6" />
+                </svg>
+                <span id="dash-email">—</span>
+              </div>
+              <div class="qr-display-small" id="dash-qr"></div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="dash-card">
+              <h3>📊 Quick Stats</h3>
+              <div class="stats-row">
+                <div class="stat-box">
+                  <div class="stat-num" id="stat-appts">0</div>
+                  <div class="stat-label">Appointments</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-num" id="stat-meds">0</div>
+                  <div class="stat-label">Medications</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-num" id="stat-visits">0</div>
+                  <div class="stat-label">Visits</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MAIN CONTENT -->
+          <div class="dash-main">
+            <!-- Tabs -->
+            <div class="dash-tabs">
+              <button
+                class="dash-tab active"
+                onclick="switchDashTab('appointments')"
+              >
+                📅 Appointments
+              </button>
+              <button class="dash-tab" onclick="switchDashTab('medications')">
+                💊 Medications
+              </button>
+              <button class="dash-tab" onclick="switchDashTab('booking')">
+                ➕ Book New
+              </button>
+            </div>
+
+            <!-- Appointments Tab -->
+            <div class="dash-tab-content active" id="tab-appointments">
+              <div class="dash-card">
+                <h3>My Appointments</h3>
+                <div id="dash-appointments-list">
+                  <div class="empty-state">
+                    <svg
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      viewBox="0 0 24 24"
+                    >
+                      <rect x="3" y="4" width="18" height="18" rx="2" />
+                      <path d="M16 2v4M8 2v4M3 10h18" />
+                    </svg>
+                    <p>No appointments yet. Book your first appointment!</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Medications Tab -->
+            <div class="dash-tab-content" id="tab-medications">
+              <div class="dash-card">
+                <h3>Prescribed Medications</h3>
+                <div id="dash-medications-list">
+                  <div class="empty-state">
+                    <svg
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0016.5 3c-1.76 0-3.332.8-4.5 2.09C10.83 3.8 9.26 3 7.5 3A5.5 5.5 0 002 8.5c0 2.3 1.5 4.05 3 5.5l7 7 7-7z"
+                      />
+                    </svg>
+                    <p>No medications prescribed yet.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Booking Tab -->
+            <div class="dash-tab-content" id="tab-booking">
+              <div class="booking-form">
+                <h3>Book New Appointment</h3>
+                <div id="booking-alert" class="alert"></div>
+                <div class="form-row">
+                  <div class="field">
+                    <label>Doctor *</label>
+                    <select id="book-doctor">
+                      <option value="">Select a doctor</option>
+                      <option value="Dr Nkosi">Dr Nkosi</option>
+                      <option value="Dr Patel">Dr Patel</option>
+                      <option value="Dr Williams">Dr Williams</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label>Date & Time *</label>
+                    <input id="book-datetime" type="datetime-local" />
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Reason for Visit</label>
+                  <input
+                    id="book-reason"
+                    type="text"
+                    placeholder="e.g. Annual checkup, Flu symptoms"
+                  />
+                </div>
+                <div class="field">
+                  <label>Additional Notes</label>
+                  <textarea
+                    id="book-notes"
+                    rows="3"
+                    placeholder="Any symptoms or concerns..."
+                  ></textarea>
+                </div>
+                <button class="sign-btn" onclick="bookAppointment()">
+                  📅 Book Appointment
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+              // ===== UTILITY FUNCTIONS =====
+              function $(id) { return document.getElementById(id); }
+
+              // ===== DATA STORE =====
+              const SC = {
+                  patientCounter: 0,
+                  patients: [],
+                  queueEntries: [],
+                  sensorReadings: [],
+                  predictionLogs: [],
+                  globalQueueCounter: 0,
+                  appointments: [],
+                  medications: [],
+                  currentPatient: null
+              };
+
+              // ===== SLIDESHOW =====
+              let slideIndex = 1;
+              let slideTimer;
+
+              function showSlide(n) {
+                  const slides = document.getElementsByClassName("mySlides");
+                  const dots = document.getElementsByClassName("dot");
+                  if (n > slides.length) slideIndex = 1;
+                  if (n < 1) slideIndex = slides.length;
+                  for (let i = 0; i < slides.length; i++) slides[i].classList.remove("active");
+                  for (let i = 0; i < dots.length; i++) dots[i].classList.remove("active");
+                  slides[slideIndex - 1].classList.add("active");
+                  dots[slideIndex - 1].classList.add("active");
+              }
+              function currentSlide(n) {
+                  slideIndex = n;
+                  showSlide(slideIndex);
+                  clearTimeout(slideTimer);
+                  startAutoSlide();
+              }
+              function startAutoSlide() {
+                  slideTimer = setTimeout(function autoSlide() {
+                      slideIndex++;
+                      showSlide(slideIndex);
+                      slideTimer = setTimeout(autoSlide, 5000);
+                  }, 5000);
+              }
+
+              // ===== QUEUE MANAGEMENT =====
+              function calcWait(position) {
+                  return position * 15;
+              }
+
+              function addToQueue(patient, source) {
+                  SC.globalQueueCounter++;
+                  const pos = SC.queueEntries.length + 1;
+                  const entry = {
+                      entry_id: "QE-" + SC.globalQueueCounter,
+                      patient_id: patient.patient_id,
+                      patient_name: patient.full_name,
+                      queue_position: pos,
+                      status: "CheckedIn",
+                      checkin_time: new Date().toISOString(),
+                      source: source,
+                      doctor: patient.doctor || "—"
+                  };
+                  SC.queueEntries.push(entry);
+                  renderQueueList();
+                  return entry;
+              }
+
+              function renderQueueList() {
+                  const container = $("queue-items");
+                  const count = $("queue-count");
+                  const active = SC.queueEntries.filter(q => q.status === "CheckedIn");
+                  count.textContent = active.length;
+                  if (!active.length) {
+                      container.innerHTML = '<div style="text-align:center; color:#7a95a8; padding:10px; font-size:0.8rem">No patients in queue yet</div>';
+                      return;
+                  }
+                  container.innerHTML = active.map((q, i) => `
+                      <div class="queue-item ${q.source === 'WalkIn' ? 'walkin' : 'registered'}">
+                          <div>
+                              <span class="q-num">#${q.queue_position}</span>
+                              <span class="q-name">${q.patient_name}</span>
+                          </div>
+                          <span class="q-type">${q.source === 'WalkIn' ? 'Walk-in' : 'Registered'}</span>
+                      </div>
+                  `).join("");
+              }
+
+              // ===== QR SCANNER =====
+              let cameraStream = null;
+              let scanInterval = null;
+              let qrLockout = false;
+
+              function setScanStatus(state, msg) {
+                  const dot = $("scan-dot");
+                  const txt = $("scan-text");
+                  dot.className = "scan-dot";
+                  if (state === "scanning") dot.classList.add("active");
+                  else if (state === "error") dot.classList.add("error");
+                  txt.textContent = msg;
+              }
+              function showQRResult(type, msg) {
+                  const el = $("qr-result");
+                  el.className = "qr-result " + type;
+                  el.textContent = msg;
+              }
+
+              async function startCamera() {
+                  if (cameraStream) return;
+                  setScanStatus("scanning", "Starting camera...");
+                  showQRResult("scanning", "Initializing camera...");
+                  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                      showQRResult("error", "Camera not supported on this device");
+                      setScanStatus("error", "Camera not supported");
+                      return;
+                  }
+                  try {
+                      cameraStream = await navigator.mediaDevices.getUserMedia({
+                          video: { facingMode: "environment" }
+                      });
+                      const video = $("qr-video");
+                      video.srcObject = cameraStream;
+                      video.style.display = "block";
+                      $("qr-placeholder").style.display = "none";
+                      $("btn-start-camera").style.display = "none";
+                      $("btn-stop-camera").style.display = "inline-block";
+                      await video.play();
+                      setScanStatus("scanning", "Scanning for QR code...");
+                      showQRResult("scanning", "Point your QR code at the camera");
+                      qrLockout = false;
+                      if (scanInterval) clearInterval(scanInterval);
+                      scanInterval = setInterval(scanFrame, 200);
+                  } catch (e) {
+                      showQRResult("error", "Camera access denied — check permissions");
+                      setScanStatus("error", "Camera access denied");
+                  }
+              }
+              function stopCamera() {
+                  if (cameraStream) {
+                      cameraStream.getTracks().forEach(t => t.stop());
+                      cameraStream = null;
+                  }
+                  if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+                  $("qr-video").style.display = "none";
+                  $("qr-placeholder").style.display = "flex";
+                  $("btn-start-camera").style.display = "inline-block";
+                  $("btn-stop-camera").style.display = "none";
+                  setScanStatus("idle", "Camera stopped");
+                  showQRResult("", "");
+                  qrLockout = false;
+              }
+              function scanFrame() {
+                  if (qrLockout || !cameraStream || typeof jsQR === "undefined") return;
+                  const video = $("qr-video");
+                  const canvas = $("qr-canvas");
+                  if (!video || video.readyState < 2 || !video.videoWidth) return;
+                  canvas.width = video.videoWidth;
+                  canvas.height = video.videoHeight;
+                  const ctx = canvas.getContext("2d");
+                  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                  try {
+                      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                      const code = jsQR(imageData.data, canvas.width, canvas.height, { inversionAttempts: "attemptBoth" });
+                      if (code && code.data) {
+                          qrLockout = true;
+                          setScanStatus("scanning", "QR detected! Processing...");
+                          showQRResult("success", "QR Code detected: " + code.data);
+                          if (navigator.vibrate) navigator.vibrate(200);
+                          setTimeout(() => { stopCamera(); processCheckin(code.data, "QR_Scan"); }, 500);
+                      }
+                  } catch (e) { console.error("Scan error:", e); }
+              }
+              function captureQR() {
+                  if (!cameraStream) { showQRResult("error", "Start the camera first!"); return; }
+                  const video = $("qr-video");
+                  const canvas = $("qr-canvas");
+                  if (!video.videoWidth) { showQRResult("error", "Camera not ready yet"); return; }
+                  canvas.width = video.videoWidth;
+                  canvas.height = video.videoHeight;
+                  const ctx = canvas.getContext("2d");
+                  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                  try {
+                      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                      const code = jsQR(imageData.data, canvas.width, canvas.height, { inversionAttempts: "attemptBoth" });
+                      if (code && code.data) {
+                          showQRResult("success", "QR captured: " + code.data);
+                          if (navigator.vibrate) navigator.vibrate(200);
+                          setTimeout(() => { stopCamera(); processCheckin(code.data, "QR_Capture"); }, 500);
+                      } else {
+                          showQRResult("error", "No QR found — center the code and try again");
+                      }
+                  } catch (e) { showQRResult("error", "Analysis error"); }
+              }
+              function manualCheckin() {
+                  const pid = $("manual-pid").value.trim();
+                  if (!pid) { showQRResult("error", "Enter a Patient ID"); return; }
+                  processCheckin(pid, "Manual_Entry");
+              }
+              function processCheckin(pid, source) {
+                  const patient = SC.patients.find(p => p.patient_id === pid);
+                  if (!patient) {
+                      showQRResult("error", "Patient " + pid + " not found — please register first");
+                      setScanStatus("error", "Patient not found");
+                      return;
+                  }
+                  const alreadyChecked = SC.queueEntries.find(q => q.patient_id === pid && q.status === "CheckedIn");
+                  if (alreadyChecked) {
+                      showQRResult("error", "⚠ " + patient.full_name + " already checked in (#" + alreadyChecked.queue_position + ")");
+                      return;
+                  }
+                  const entry = addToQueue(patient, source);
+                  showQRResult("success", "✅ " + patient.full_name + " checked in as #" + entry.queue_position);
+                  setScanStatus("idle", "Check-in complete!");
+                  alert("Welcome, " + patient.full_name + "!
+      Your queue number is: #" + entry.queue_position + "
+      Estimated wait: " + calcWait(entry.queue_position) + " minutes");
+              }
+
+              // ===== WALK-IN TICKET =====
+              let walkinCounter = 0;
+              function nextWalkinTicket() {
+                  walkinCounter++;
+                  const ticketNum = "A" + String(walkinCounter).padStart(3, "0");
+                  $("queue-number").textContent = ticketNum;
+                  const walkinPatient = {
+                      patient_id: "WALK-" + String(walkinCounter).padStart(3, "0"),
+                      full_name: "Walk-in Patient " + ticketNum,
+                      id_number: "",
+                      dob: "",
+                      contact: "",
+                      email: "",
+                      doctor: "—",
+                      appt: "",
+                      created_at: new Date().toISOString()
+                  };
+                  SC.patients.push(walkinPatient);
+                  const entry = addToQueue(walkinPatient, "WalkIn");
+                  $("walkin-ticket-num").textContent = ticketNum;
+                  $("walkin-ticket-info").textContent = "Position: #" + entry.queue_position + " | Est. wait: " + calcWait(entry.queue_position) + " min";
+                  $("walkin-ticket-display").classList.add("show");
+                  alert("🎫 Walk-in Ticket: " + ticketNum + "
+      Queue Position: #" + entry.queue_position + "
+      Estimated wait: " + calcWait(entry.queue_position) + " minutes");
+              }
+
+              // ===== REGISTRATION =====
+              let currentReg = null;
+
+              function onIdInput() {
+                  const id = $("r-id").value;
+                  if (id.length === 13) {
+                      const year = id.substring(0, 2);
+                      const month = id.substring(2, 4);
+                      const day = id.substring(4, 6);
+                      const fullYear = parseInt(year) >= 50 ? "19" + year : "20" + year;
+                      $("r-dob").value = fullYear + "-" + month + "-" + day;
+                  }
+              }
+
+              function doRegister() {
+                  const name = $("r-name").value.trim();
+                  const id = $("r-id").value.trim();
+                  const dob = $("r-dob").value;
+                  const contact = $("r-contact").value.trim();
+                  const email = $("r-email").value.trim();
+                  const doctor = $("r-doctor").value;
+                  const appt = $("r-appt").value;
+
+                  if (!name || !id || !doctor || !appt) {
+                      showRegAlert("warning", "⚠ Please fill all required fields.");
+                      return;
+                  }
+                  if (!/^\d{13}$/.test(id)) {
+                      showRegAlert("error", "⚠ SA ID Number must be exactly 13 digits.");
+                      return;
+                  }
+
+                  SC.patientCounter++;
+                  const pid = "SC-" + String(SC.patientCounter).padStart(3, "0");
+
+                  const patient = {
+                      patient_id: pid,
+                      full_name: name,
+                      id_number: id,
+                      dob: dob,
+                      contact: contact,
+                      email: email,
+                      doctor: doctor,
+                      appt: appt,
+                      created_at: new Date().toISOString()
+                  };
+                  SC.patients.push(patient);
+                  currentReg = patient;
+                  SC.currentPatient = patient;
+
+                  // Add to queue
+                  const entry = addToQueue(patient, "Registration");
+
+                  // Create initial appointment record
+                  const appointment = {
+                      appt_id: "APT-" + String(SC.appointments.length + 1).padStart(3, "0"),
+                      patient_id: pid,
+                      doctor: doctor,
+                      datetime: appt,
+                      reason: "Initial Registration",
+                      notes: "",
+                      status: "upcoming",
+                      created_at: new Date().toISOString()
+                  };
+                  SC.appointments.push(appointment);
+
+                  // Show ticket
+                  $("reg-ticket-num").textContent = pid;
+                  $("reg-ticket-info").textContent = "Position: #" + entry.queue_position + " | Est. wait: " + calcWait(entry.queue_position) + " min | Dr: " + doctor;
+
+                  // Show card result
+                  $("reg-form").style.display = "none";
+                  $("card-result").classList.remove("hidden");
+
+                  $("card-name").textContent = name;
+                  $("card-pid").textContent = "Patient ID: " + pid;
+                  $("card-idnum").textContent = "ID: " + id;
+                  $("card-dob").textContent = "DOB: " + (dob || "—");
+
+                  // Generate QR
+                  $("qr-render").innerHTML = "";
+                  new QRCode($("qr-render"), {
+                      text: pid,
+                      width: 140,
+                      height: 140,
+                      colorDark: "#006B60",
+                      colorLight: "#fff",
+                      correctLevel: QRCode.CorrectLevel.H
+                  });
+
+                  showRegAlert("success", "✅ Registration successful! Your queue ticket is #" + entry.queue_position);
+
+                  alert("✅ Registration Complete!
+
+      Patient ID: " + pid + "
+      Queue Position: #" + entry.queue_position + "
+      Doctor: " + doctor + "
+      Appointment: " + new Date(appt).toLocaleString("en-ZA") + "
+
+      Estimated wait: " + calcWait(entry.queue_position) + " minutes");
+              }
+
+              function showRegAlert(type, msg) {
+                  const el = $("reg-alert");
+                  el.className = "alert alert-" + type + " show";
+                  el.textContent = msg;
+                  setTimeout(() => el.classList.remove("show"), 4000);
+              }
+              function clearForm() {
+                  $("r-name").value = "";
+                  $("r-id").value = "";
+                  $("r-dob").value = "";
+                  $("r-contact").value = "";
+                  $("r-email").value = "";
+                  $("r-doctor").value = "";
+                  $("r-appt").value = "";
+                  $("reg-alert").classList.remove("show");
+              }
+              function regAnother() {
+                  currentReg = null;
+                  $("reg-form").style.display = "block";
+                  $("card-result").classList.add("hidden");
+                  clearForm();
+              }
+              function downloadCard() {
+                  const p = currentReg;
+                  if (!p) return;
+                  const canvas = document.querySelector("#qr-render canvas");
+                  if (!canvas) { alert("QR not ready yet."); return; }
+                  const { jsPDF } = window.jspdf;
+                  const doc = new jsPDF({ unit: "mm", format: [85, 54] });
+                  doc.setFillColor(7, 53, 48);
+                  doc.rect(0, 0, 85, 54, "F");
+                  doc.setFillColor(0, 200, 150);
+                  doc.roundedRect(5, 5, 12, 12, 2, 2, "F");
+                  doc.setFillColor(255, 255, 255);
+                  doc.rect(9.5, 7, 3, 8, "F");
+                  doc.rect(7, 10, 8, 3, "F");
+                  doc.setTextColor(255, 255, 255);
+                  doc.setFont("courier", "bold");
+                  doc.setFontSize(9);
+                  doc.text("SmartClinic", 20, 10);
+                  doc.setFont("helvetica", "normal");
+                  doc.setFontSize(5.5);
+                  doc.setTextColor(178, 223, 219);
+                  doc.text("OFFICIAL CLINIC CARD", 20, 14.5);
+                  doc.addImage(canvas.toDataURL("image/png"), "PNG", 5, 18, 26, 26);
+                  doc.setTextColor(255, 255, 255);
+                  doc.setFont("helvetica", "bold");
+                  doc.setFontSize(9.5);
+                  doc.text(p.full_name, 34, 22);
+                  doc.setFont("courier", "bold");
+                  doc.setFontSize(10);
+                  doc.setTextColor(0, 200, 150);
+                  doc.text(p.patient_id, 34, 29);
+                  doc.setFont("helvetica", "normal");
+                  doc.setFontSize(6.5);
+                  doc.setTextColor(178, 223, 219);
+                  doc.text("ID: " + p.id_number, 34, 35);
+                  if (p.doctor) {
+                      doc.setFontSize(6);
+                      doc.setTextColor(120, 180, 170);
+                      doc.text(p.doctor, 34, 41);
+                  }
+                  doc.setFontSize(5.5);
+                  doc.setTextColor(80, 140, 130);
+                  doc.text("Keep this card safe. Present at every visit.", 5, 51);
+                  doc.save("SmartClinic-Card-" + p.patient_id + ".pdf");
+              }
+
+              // ===== DASHBOARD FUNCTIONS =====
+              function goToDashboard() {
+                  if (!SC.currentPatient) {
+                      alert("No patient logged in. Please register first.");
+                      return;
+                  }
+                  populateDashboard();
+                  $("dashboard-overlay").classList.add("show");
+                  document.body.style.overflow = "hidden";
+              }
+
+              function closeDashboard() {
+                  $("dashboard-overlay").classList.remove("show");
+                  document.body.style.overflow = "auto";
+              }
+
+              function populateDashboard() {
+                  const p = SC.currentPatient;
+                  if (!p) return;
+
+                  // Profile
+                  $("dash-avatar").textContent = p.full_name.charAt(0).toUpperCase();
+                  $("dash-name").textContent = p.full_name;
+                  $("dash-pid").textContent = p.patient_id;
+                  $("dash-id").textContent = "ID: " + p.id_number;
+                  $("dash-contact").textContent = p.contact || "—";
+                  $("dash-dob").textContent = "DOB: " + (p.dob || "—");
+                  $("dash-email").textContent = p.email || "—";
+
+                  // QR Code
+                  $("dash-qr").innerHTML = "";
+                  new QRCode($("dash-qr"), {
+                      text: p.patient_id,
+                      width: 100,
+                      height: 100,
+                      colorDark: "#006B60",
+                      colorLight: "#fff",
+                      correctLevel: QRCode.CorrectLevel.H
+                  });
+
+                  // Stats
+                  const patientAppts = SC.appointments.filter(a => a.patient_id === p.patient_id);
+                  const patientMeds = SC.medications.filter(m => m.patient_id === p.patient_id);
+                  const patientVisits = SC.queueEntries.filter(q => q.patient_id === p.patient_id);
+
+                  $("stat-appts").textContent = patientAppts.length;
+                  $("stat-meds").textContent = patientMeds.length;
+                  $("stat-visits").textContent = patientVisits.length;
+
+                  // Appointments list
+                  renderAppointmentsList();
+
+                  // Medications list
+                  renderMedicationsList();
+              }
+
+              function renderAppointmentsList() {
+                  const container = $("dash-appointments-list");
+                  const p = SC.currentPatient;
+                  if (!p) return;
+
+                  const patientAppts = SC.appointments.filter(a => a.patient_id === p.patient_id);
+
+                  if (!patientAppts.length) {
+                      container.innerHTML = `
+                          <div class="empty-state">
+                              <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                              <p>No appointments yet. Book your first appointment!</p>
+                          </div>`;
+                      return;
+                  }
+
+                  container.innerHTML = patientAppts.map(appt => `
+                      <div class="appointment-card">
+                          <div class="appt-info">
+                              <h4>${appt.doctor}</h4>
+                              <p>📅 ${new Date(appt.datetime).toLocaleString("en-ZA", { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                              <p>📝 ${appt.reason || "General consultation"}</p>
+                          </div>
+                          <span class="appt-status ${appt.status}">${appt.status.charAt(0).toUpperCase() + appt.status.slice(1)}</span>
+                      </div>
+                  `).join("");
+              }
+
+              function renderMedicationsList() {
+                  const container = $("dash-medications-list");
+                  const p = SC.currentPatient;
+                  if (!p) return;
+
+                  const patientMeds = SC.medications.filter(m => m.patient_id === p.patient_id);
+
+                  if (!patientMeds.length) {
+                      container.innerHTML = `
+                          <div class="empty-state">
+                              <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0016.5 3c-1.76 0-3.332.8-4.5 2.09C10.83 3.8 9.26 3 7.5 3A5.5 5.5 0 002 8.5c0 2.3 1.5 4.05 3 5.5l7 7 7-7z"/></svg>
+                              <p>No medications prescribed yet.</p>
+                          </div>`;
+                      return;
+                  }
+
+                  container.innerHTML = patientMeds.map(med => `
+                      <div class="medication-card">
+                          <h4>Prescription ${med.prescription_id}</h4>
+                          <div class="med-date">📅 ${new Date(med.date).toLocaleDateString("en-ZA")} | Dr. ${med.doctor}</div>
+                          ${med.items.map(item => `
+                              <div class="med-item">
+                                  <div>
+                                      <div class="med-name">💊 ${item.name}</div>
+                                      <div class="med-dose">${item.dosage} | ${item.frequency} | ${item.duration}</div>
+                                  </div>
+                                  <span class="med-status ${item.status}">${item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span>
+                              </div>
+                          `).join("")}
+                      </div>
+                  `).join("");
+              }
+
+              function switchDashTab(tabName) {
+                  // Update tabs
+                  document.querySelectorAll(".dash-tab").forEach(t => t.classList.remove("active"));
+                  event.target.classList.add("active");
+
+                  // Update content
+                  document.querySelectorAll(".dash-tab-content").forEach(c => c.classList.remove("active"));
+                  $("tab-" + tabName).classList.add("active");
+              }
+
+              function bookAppointment() {
+                  const doctor = $("book-doctor").value;
+                  const datetime = $("book-datetime").value;
+                  const reason = $("book-reason").value.trim();
+                  const notes = $("book-notes").value.trim();
+
+                  if (!doctor || !datetime) {
+                      showBookingAlert("error", "⚠ Please select a doctor and date/time.");
+                      return;
+                  }
+
+                  const p = SC.currentPatient;
+                  if (!p) {
+                      showBookingAlert("error", "⚠ No patient logged in.");
+                      return;
+                  }
+
+                  const appointment = {
+                      appt_id: "APT-" + String(SC.appointments.length + 1).padStart(3, "0"),
+                      patient_id: p.patient_id,
+                      doctor: doctor,
+                      datetime: datetime,
+                      reason: reason || "General consultation",
+                      notes: notes,
+                      status: "upcoming",
+                      created_at: new Date().toISOString()
+                  };
+                  SC.appointments.push(appointment);
+
+                  showBookingAlert("success", "✅ Appointment booked with " + doctor + " on " + new Date(datetime).toLocaleString("en-ZA"));
+
+                  // Clear form
+                  $("book-doctor").value = "";
+                  $("book-datetime").value = "";
+                  $("book-reason").value = "";
+                  $("book-notes").value = "";
+
+                  // Refresh appointments list
+                  renderAppointmentsList();
+                  populateDashboard();
+
+                  // Switch to appointments tab
+                  setTimeout(() => {
+                      document.querySelectorAll(".dash-tab").forEach(t => t.classList.remove("active"));
+                      document.querySelectorAll(".dash-tab-content").forEach(c => c.classList.remove("active"));
+                      document.querySelector(".dash-tab:nth-child(1)").classList.add("active");
+                      $("tab-appointments").classList.add("active");
+                  }, 1500);
+              }
+
+              function showBookingAlert(type, msg) {
+                  const el = $("booking-alert");
+                  el.className = "alert alert-" + type + " show";
+                  el.textContent = msg;
+                  setTimeout(() => el.classList.remove("show"), 4000);
+              }
+
+              // Demo medication data for testing
+              function addDemoMedication() {
+                  if (!SC.currentPatient) return;
+                  const med = {
+                      prescription_id: "RX-001",
+                      patient_id: SC.currentPatient.patient_id,
+                      doctor: "Dr Nkosi",
+                      date: new Date().toISOString(),
+                      items: [
+                          { name: "Paracetamol", dosage: "500mg", frequency: "3 times daily", duration: "5 days", status: "active" },
+                          { name: "Amoxicillin", dosage: "250mg", frequency: "2 times daily", duration: "7 days", status: "active" }
+                      ]
+                  };
+                  SC.medications.push(med);
+                  renderMedicationsList();
+                  populateDashboard();
+              }
+
+              // ===== INIT =====
+              document.addEventListener("DOMContentLoaded", function() {
+                  showSlide(1);
+                  startAutoSlide();
+                  renderQueueList();
+                  if (typeof jsQR === "undefined") {
+                      console.error("jsQR not loaded");
+                      showQRResult("error", "QR scanner library failed to load. Refresh the page.");
+                  } else {
+                      console.log("✅ jsQR loaded");
+                  }
+                  if (typeof QRCode === "undefined") {
+                      console.error("QRCode.js not loaded");
+                  } else {
+                      console.log("✅ QRCode.js loaded");
+                  }
+              });
+    </script>
+  </body>
+</html>

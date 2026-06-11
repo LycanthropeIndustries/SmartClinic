@@ -1,221 +1,1655 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SmartClinic — Patient</title>
-<link rel="stylesheet" href="../css/shared.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<style>
-.status-hero{background:linear-gradient(135deg,var(--navy-light),#0a2a1e);border:1px solid rgba(0,200,150,.2);border-radius:20px;padding:36px;text-align:center;position:relative;overflow:hidden}
-.status-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 70% at 50% 120%,rgba(0,200,150,.15) 0%,transparent 70%);pointer-events:none}
-.status-hero .qn{font-family:var(--mono);font-size:5.5rem;font-weight:700;color:var(--green);line-height:1;position:relative}
-.status-hero .ql{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:4px}
-.status-hero .wt{font-size:1.2rem;font-weight:700;color:#fff;margin-top:14px}
-.status-hero .ws{font-size:.82rem;color:rgba(255,255,255,.45);margin-top:4px}
-.checkedin-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(0,200,150,.12);border:1px solid rgba(0,200,150,.25);border-radius:99px;padding:7px 18px;margin-top:14px;color:var(--green);font-weight:700;font-size:.85rem}
-.qr-card{border:1.5px solid rgba(0,200,150,.4);border-radius:16px;padding:20px;background:linear-gradient(135deg,#073530,#0a4a42);text-align:center;max-width:280px;margin:0 auto}
-.qr-card .cc-logo{display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:4px}
-.qr-card .cc-brand{font-family:var(--mono);font-size:.8rem;font-weight:700;color:#fff}
-.qr-card .cc-brand em{font-style:normal;color:var(--green)}
-.qr-card .cc-sub{font-size:.6rem;color:rgba(255,255,255,.35);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
-.qr-card .cc-qr{background:#fff;padding:7px;border-radius:8px;display:inline-block;margin-bottom:12px}
-.qr-card .pn{font-size:.95rem;font-weight:700;color:#fff}
-.qr-card .pp{font-family:var(--mono);font-size:.8rem;color:var(--green);margin-top:3px}
-.qr-card .pi{font-size:.68rem;color:rgba(255,255,255,.35);margin-top:2px}
-.qr-card .pfoot{font-size:.62rem;color:rgba(255,255,255,.2);margin-top:10px}
-.appt-row{padding:13px 15px;border-bottom:1px solid var(--border)}
-.appt-row:last-child{border-bottom:none}
-.appt-row .at{font-family:var(--mono);font-size:.82rem;color:var(--green);font-weight:700}
-.appt-row .ad{font-weight:600;margin-top:2px;font-size:.9rem}
-.appt-row .ar{font-size:.78rem;color:var(--text-dim);margin-top:2px}
-</style>
-</head>
-<body>
-<div class="dash-shell">
-<aside class="sidebar">
-  <div class="sidebar-brand">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-      <svg width="26" height="26" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#00C896"/><rect x="13" y="5" width="6" height="22" rx="3" fill="white"/><rect x="5" y="13" width="22" height="6" rx="3" fill="white"/></svg>
-      <span style="font-family:var(--mono);font-size:1rem;font-weight:700;color:#fff">Smart<span style="color:var(--green)">Clinic</span></span>
-    </div>
-    <div class="role-pill">Patient</div>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">My Visit</div>
-    <a class="nav-item active" href="#" onclick="return go('status',event)"><span class="icon">📋</span>My Status</a>
-    <a class="nav-item" href="#" onclick="return go('card',event)"><span class="icon">🪪</span>My QR Card</a>
-    <a class="nav-item" href="#" onclick="return go('appointments',event)"><span class="icon">📅</span>My Appointments</a>
-  </nav>
-  <div class="sidebar-footer">
-    <div class="user-chip">
-      <div class="av" id="sb-av">ZD</div>
-      <div class="info"><div class="uname" id="sb-name">Zanele Dlamini</div><div class="urole" id="sb-pid">SC-001</div></div>
-    </div>
-    <button class="btn btn-outline btn-sm btn-block" style="margin-top:10px" onclick="logout()">Sign Out</button>
-  </div>
-</aside>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="theme-color" content="#0b1120" />
+    <title>SmartClinic — Patient Terminal</title>
+    <link rel="stylesheet" href="../css/shared.css" />
+    <!-- QR Scanner -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <!-- QR Generator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+      /* ═══════════════════════════════════════════════════════════════
+     SmartClinic Design System — matches shared.css / login.html
+     ═══════════════════════════════════════════════════════════════ */
+      :root {
+        /* shared.css compatible variables */
+        --card: #1a2234;
+        --border: rgba(148, 163, 184, 0.12);
+        --text-dim: #94a3b8;
+        --green: #10b981;
+        --blue: #3b82f6;
+        --amber: #f59e0b;
+        --danger: #ef4444;
+        --mono: "SF Mono", Monaco, "Cascadia Code", monospace;
+        --font:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        --r: 14px;
+        /* extended patient terminal variables */
+        --bg: #0b1120;
+        --bg-elevated: #111827;
+        --card-hover: #243044;
+        --border-focus: rgba(59, 130, 246, 0.4);
+        --text: #f8fafc;
+        --text-muted: #64748b;
+        --primary: #3b82f6;
+        --primary-hover: #2563eb;
+        --primary-glow: rgba(59, 130, 246, 0.25);
+        --success: #10b981;
+        --success-glow: rgba(16, 185, 129, 0.2);
+        --warning: #f59e0b;
+        --info: #06b6d4;
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+        --shadow-lg:
+          0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+        --radius: 14px;
+        --radius-sm: 10px;
+        --radius-lg: 20px;
+      }
 
-<div class="main-content">
-  <div class="topbar">
-    <div><div class="topbar-title" id="pg-title">My Status</div><div class="topbar-meta">Live queue information for your visit</div></div>
-    <div class="topbar-right"><span style="font-size:.78rem;color:var(--text-dim)" id="clock"></span></div>
-  </div>
-  <div class="page-body">
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html {
+        font-size: 16px;
+      }
+      body {
+        font-family: var(--font);
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        line-height: 1.5;
+      }
 
-    <!-- STATUS -->
-    <div id="sec-status">
-      <div id="status-in" class="hidden" style="margin-bottom:20px">
-        <div class="status-hero fade-in">
-          <div class="ql">Your Queue Number</div>
-          <div class="qn" id="pat-qn">—</div>
-          <div class="wt" id="pat-wt">Estimated wait: —</div>
-          <div class="ws">The nurse will call your name when the doctor is ready</div>
-          <div class="checkedin-badge">● Checked In</div>
+      /* ── App Shell ── */
+      .app {
+        max-width: 520px;
+        margin: 0 auto;
+        min-height: 100vh;
+        position: relative;
+      }
+
+      /* ── Header ── */
+      .app-header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: rgba(11, 17, 32, 0.9);
+        backdrop-filter: blur(16px) saturate(1.2);
+        -webkit-backdrop-filter: blur(16px) saturate(1.2);
+        border-bottom: 1px solid var(--border);
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .app-header .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .app-header .brand-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--primary), var(--success));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+      }
+      .app-header .brand-text {
+        font-family: var(--mono);
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #fff;
+      }
+      .app-header .brand-text span {
+        color: var(--success);
+      }
+      .app-header .status {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--success);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .app-header .status::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--success);
+        animation: pulse-dot 2s infinite;
+      }
+      @keyframes pulse-dot {
+        0%,
+        100% {
+          opacity: 1;
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+        }
+        50% {
+          opacity: 0.7;
+          box-shadow: 0 0 0 5px rgba(16, 185, 129, 0);
+        }
+      }
+
+      /* ── Body ── */
+      .app-body {
+        padding: 20px;
+        padding-bottom: 100px;
+      }
+
+      /* ── Screens ── */
+      .screen {
+        display: none;
+        animation: screenIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .screen.active {
+        display: block;
+      }
+      @keyframes screenIn {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ── Cards (matches admin dashboard) ── */
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        margin-bottom: 16px;
+        box-shadow: var(--shadow);
+      }
+      .card-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-dim);
+        margin-bottom: 16px;
+      }
+
+      /* ── Buttons (matches admin) ── */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: var(--radius-sm);
+        border: 1px solid transparent;
+        font-family: var(--font);
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: var(--primary);
+        color: #fff;
+      }
+      .btn:hover {
+        filter: brightness(1.1);
+        transform: translateY(-1px);
+      }
+      .btn:active {
+        transform: translateY(0) scale(0.98);
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .btn-sm {
+        padding: 7px 14px;
+        font-size: 0.82rem;
+      }
+      .btn-lg {
+        padding: 16px 24px;
+        font-size: 1rem;
+      }
+      .btn-outline {
+        background: transparent;
+        border-color: var(--border);
+        color: var(--text-dim);
+      }
+      .btn-outline:hover {
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+      }
+      .btn-success {
+        background: var(--success);
+      }
+      .btn-danger {
+        background: var(--danger);
+      }
+      .btn-block {
+        width: 100%;
+      }
+
+      /* ── Scanner ── */
+      .scanner-wrap {
+        position: relative;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        background: #000;
+        aspect-ratio: 1;
+        max-height: 380px;
+        border: 1px solid var(--border);
+      }
+      .scanner-wrap #reader {
+        width: 100% !important;
+        height: 100% !important;
+        border: none !important;
+      }
+      .scanner-wrap #reader video {
+        object-fit: cover !important;
+        width: 100% !important;
+        height: 100% !important;
+      }
+      /* Hide default UI */
+      .scanner-wrap #reader__dashboard_section_csr span,
+      .scanner-wrap #reader__dashboard_section_swaplink,
+      .scanner-wrap #reader__camera_permission_button,
+      .scanner-wrap #reader__header_message {
+        display: none !important;
+      }
+      .scanner-wrap #reader__scan_region {
+        background: transparent !important;
+        border: none !important;
+      }
+      .scanner-wrap #reader__scan_region img {
+        display: none !important;
+      }
+
+      .scanner-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        z-index: 10;
+      }
+      .scanner-frame {
+        width: 200px;
+        height: 200px;
+        border: 2px solid rgba(59, 130, 246, 0.5);
+        border-radius: 18px;
+        position: relative;
+        box-shadow:
+          0 0 0 4000px rgba(0, 0, 0, 0.55),
+          inset 0 0 20px rgba(59, 130, 246, 0.15);
+      }
+      .scanner-frame::before,
+      .scanner-frame::after {
+        content: "";
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border-color: var(--primary);
+        border-style: solid;
+      }
+      .scanner-frame::before {
+        top: -2px;
+        left: -2px;
+        border-width: 4px 0 0 4px;
+        border-radius: 14px 0 0 0;
+      }
+      .scanner-frame::after {
+        bottom: -2px;
+        right: -2px;
+        border-width: 0 4px 4px 0;
+        border-radius: 0 0 14px 0;
+      }
+      .scanner-laser {
+        position: absolute;
+        top: 0;
+        left: 8%;
+        right: 8%;
+        height: 2px;
+        background: var(--primary);
+        box-shadow:
+          0 0 6px var(--primary),
+          0 0 12px var(--primary-glow);
+        animation: laser 2.2s ease-in-out infinite;
+        border-radius: 2px;
+      }
+      @keyframes laser {
+        0%,
+        100% {
+          top: 12%;
+          opacity: 0.5;
+        }
+        50% {
+          top: 88%;
+          opacity: 1;
+        }
+      }
+      .scanner-hint {
+        position: absolute;
+        bottom: 36px;
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.75);
+        text-align: center;
+        padding: 0 20px;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+      }
+
+      .scan-btn {
+        width: 100%;
+        padding: 16px;
+        margin-top: 16px;
+        background: linear-gradient(135deg, var(--primary), var(--info));
+        border: none;
+        border-radius: var(--radius-sm);
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px var(--primary-glow);
+        transition: all 0.2s;
+      }
+      .scan-btn:active {
+        transform: scale(0.97);
+      }
+      .scan-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* ── Welcome Block ── */
+      .welcome {
+        text-align: center;
+        padding: 32px 16px 24px;
+      }
+      .welcome .icon {
+        font-size: 3.5rem;
+        margin-bottom: 16px;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+      }
+      .welcome h2 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        letter-spacing: -0.01em;
+      }
+      .welcome p {
+        color: var(--text-dim);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        max-width: 300px;
+        margin: 0 auto;
+      }
+
+      /* ── Profile ── */
+      .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+      .profile-avatar {
+        width: 68px;
+        height: 68px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--success));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #fff;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px var(--primary-glow);
+      }
+      .profile-info h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 3px;
+      }
+      .profile-info p {
+        font-size: 0.8rem;
+        color: var(--text-dim);
+      }
+      .profile-info .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        border-radius: 99px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        background: rgba(16, 185, 129, 0.12);
+        color: var(--success);
+        margin-top: 6px;
+        letter-spacing: 0.03em;
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .info-item {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 14px;
+      }
+      .info-item.full {
+        grid-column: 1 / -1;
+      }
+      .info-item label {
+        display: block;
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-muted);
+        margin-bottom: 5px;
+      }
+      .info-item value {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text);
+        word-break: break-word;
+      }
+      .info-item value.mono {
+        font-family: var(--mono);
+        font-size: 0.82rem;
+      }
+
+      /* ── QR Section ── */
+      .qr-section {
+        text-align: center;
+        padding: 24px 16px;
+      }
+      .qr-section > p {
+        font-size: 0.85rem;
+        color: var(--text-dim);
+        margin-bottom: 16px;
+      }
+      .qr-wrap {
+        display: inline-block;
+        padding: 14px;
+        background: #fff;
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow);
+      }
+      .qr-wrap canvas,
+      .qr-wrap img {
+        display: block;
+        border-radius: 4px;
+      }
+      .qr-id {
+        margin-top: 12px;
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        letter-spacing: 0.04em;
+      }
+
+      /* ── Appointments ── */
+      .appt-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .appt-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .appt-card:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(148, 163, 184, 0.2);
+      }
+      .appt-card:active {
+        transform: scale(0.98);
+      }
+      .appt-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+      }
+      .appt-icon.scheduled {
+        background: rgba(59, 130, 246, 0.12);
+      }
+      .appt-icon.completed {
+        background: rgba(16, 185, 129, 0.12);
+      }
+      .appt-icon.cancelled {
+        background: rgba(239, 68, 68, 0.12);
+      }
+      .appt-icon.pending {
+        background: rgba(245, 158, 11, 0.12);
+      }
+      .appt-details {
+        flex: 1;
+        min-width: 0;
+      }
+      .appt-details h4 {
+        font-size: 0.92rem;
+        font-weight: 600;
+        margin-bottom: 3px;
+      }
+      .appt-details p {
+        font-size: 0.78rem;
+        color: var(--text-dim);
+      }
+      .appt-status {
+        padding: 4px 10px;
+        border-radius: 99px;
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        flex-shrink: 0;
+        letter-spacing: 0.03em;
+      }
+      .appt-status.scheduled {
+        background: rgba(59, 130, 246, 0.12);
+        color: #7bb5ff;
+      }
+      .appt-status.completed {
+        background: rgba(16, 185, 129, 0.12);
+        color: #4ade80;
+      }
+      .appt-status.cancelled {
+        background: rgba(239, 68, 68, 0.12);
+        color: #f87171;
+      }
+      .appt-status.pending {
+        background: rgba(245, 158, 11, 0.12);
+        color: #fbbf24;
+      }
+
+      .appt-empty {
+        text-align: center;
+        padding: 36px 16px;
+        color: var(--text-dim);
+      }
+      .appt-empty .icon {
+        font-size: 2.8rem;
+        margin-bottom: 12px;
+        opacity: 0.4;
+      }
+      .appt-empty h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: var(--text);
+      }
+      .appt-empty p {
+        font-size: 0.85rem;
+      }
+
+      /* ── Forms ── */
+      .form-group {
+        margin-bottom: 18px;
+      }
+      .form-group label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--text-dim);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        width: 100%;
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        font-size: 1rem;
+        font-family: var(--font);
+        transition: all 0.2s;
+      }
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: rgba(255, 255, 255, 0.06);
+        box-shadow: 0 0 0 3px var(--primary-glow);
+      }
+      .form-group input::placeholder {
+        color: var(--text-muted);
+      }
+      .form-hint {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-top: 5px;
+      }
+      .form-error {
+        font-size: 0.78rem;
+        color: var(--danger);
+        margin-top: 5px;
+        display: none;
+      }
+      .form-error.visible {
+        display: block;
+      }
+
+      /* ── Bottom Nav ── */
+      .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(11, 17, 32, 0.92);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: space-around;
+        padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
+        z-index: 50;
+      }
+      .bottom-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        padding: 6px 18px;
+        border-radius: 12px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.65rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        border: none;
+        background: none;
+        cursor: pointer;
+        letter-spacing: 0.02em;
+      }
+      .bottom-nav-item.active {
+        color: var(--primary);
+      }
+      .bottom-nav-item .icon {
+        font-size: 1.35rem;
+        line-height: 1;
+      }
+
+      /* ── Toasts ── */
+      .toast-container {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        right: 16px;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        pointer-events: none;
+      }
+      .toast {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 14px 18px;
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: auto;
+      }
+      .toast.success {
+        border-left: 3px solid var(--success);
+      }
+      .toast.error {
+        border-left: 3px solid var(--danger);
+      }
+      .toast.info {
+        border-left: 3px solid var(--primary);
+      }
+      @keyframes toastIn {
+        from {
+          opacity: 0;
+          transform: translateY(-16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes toastOut {
+        to {
+          opacity: 0;
+          transform: translateY(-16px);
+        }
+      }
+
+      /* ── Detail View ── */
+      .detail-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .detail-header .back-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        color: var(--text-dim);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.1rem;
+        transition: all 0.2s;
+      }
+      .detail-header .back-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+      }
+      .detail-header h2 {
+        font-size: 1.15rem;
+        font-weight: 700;
+      }
+
+      .detail-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 99px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+      }
+      .detail-status.scheduled {
+        background: rgba(59, 130, 246, 0.12);
+        color: #7bb5ff;
+      }
+      .detail-status.completed {
+        background: rgba(16, 185, 129, 0.12);
+        color: #4ade80;
+      }
+      .detail-status.cancelled {
+        background: rgba(239, 68, 68, 0.12);
+        color: #f87171;
+      }
+
+      /* ── Link text ── */
+      .link {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .link:hover {
+        text-decoration: underline;
+      }
+
+      /* ── Utilities ── */
+      .text-center {
+        text-align: center;
+      }
+      .text-dim {
+        color: var(--text-dim);
+      }
+      .text-sm {
+        font-size: 0.85rem;
+      }
+      .text-xs {
+        font-size: 0.75rem;
+      }
+      .mt-8 {
+        margin-top: 8px;
+      }
+      .mt-16 {
+        margin-top: 16px;
+      }
+      .mt-24 {
+        margin-top: 24px;
+      }
+      .mb-0 {
+        margin-bottom: 0 !important;
+      }
+      .hidden {
+        display: none !important;
+      }
+      .flex {
+        display: flex;
+      }
+      .flex-col {
+        display: flex;
+        flex-direction: column;
+      }
+      .items-center {
+        align-items: center;
+      }
+      .justify-between {
+        justify-content: space-between;
+      }
+      .gap-12 {
+        gap: 12px;
+      }
+      .w-full {
+        width: 100%;
+      }
+
+      /* ── Responsive ── */
+      @media (min-width: 520px) {
+        .app {
+          border-left: 1px solid var(--border);
+          border-right: 1px solid var(--border);
+        }
+      }
+    </style>
+    <base target="_blank" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- Header -->
+      <header class="app-header">
+        <div class="brand">
+          <div class="brand-icon">🏥</div>
+          <div class="brand-text">Smart<span>Clinic</span></div>
         </div>
-        <div class="g2 fade-in" style="margin-top:18px;align-items:start">
-          <div class="stat-box"><div class="stat-val" id="pat-ahead">—</div><div class="stat-lbl">Patients ahead of you</div></div>
-          <div class="stat-box"><div class="stat-val" id="pat-avg">15m</div><div class="stat-lbl">Avg consultation time</div></div>
-        </div>
-      </div>
+        <div class="status" id="conn-status">Online</div>
+      </header>
 
-      <div id="status-out" class="card">
-        <div style="text-align:center;padding:36px 20px">
-          <div style="font-size:4rem;margin-bottom:14px">🏥</div>
-          <div style="font-size:1.2rem;font-weight:700;margin-bottom:8px">You're not checked in yet</div>
-          <p style="color:var(--text-dim);font-size:.875rem;max-width:320px;margin:0 auto">Visit the kiosk at reception and scan your QR clinic card. Your queue number will appear here automatically.</p>
-          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px">
-            <button class="btn btn-primary" onclick="simMyCI()">📷 Simulate My Check-In</button>
-            <button class="btn btn-outline" onclick="go('card',{target:document.querySelector('.nav-item:nth-child(2)')})">🪪 View My Card</button>
+      <!-- Toast Container -->
+      <div class="toast-container" id="toasts"></div>
+
+      <!-- Main Body -->
+      <main class="app-body">
+        <!-- ════════════════════════════════════════
+         SCREEN: SCANNER
+         ════════════════════════════════════════ -->
+        <section id="screen-scan" class="screen active" aria-label="QR Scanner">
+          <div class="welcome">
+            <div class="icon">📷</div>
+            <h2>Patient Check-In</h2>
+            <p>
+              Scan your patient QR code to view your profile and appointments.
+            </p>
           </div>
-          <p style="font-size:.72rem;color:var(--text-dim);margin-top:14px">Can't find your card? Ask the receptionist to check you in manually.</p>
-        </div>
-      </div>
-    </div>
 
-    <!-- QR CARD -->
-    <div id="sec-card" class="hidden">
-      <div class="card" style="max-width:400px;margin:0 auto">
-        <div class="card-title">My QR Clinic Card</div>
-        <p style="font-size:.82rem;color:var(--text-dim);margin-bottom:18px">Present this card at the kiosk on every visit to check in automatically.</p>
-        <div class="qr-card">
-          <div class="cc-logo">
-            <svg width="16" height="16" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#00C896"/><rect x="13" y="5" width="6" height="22" rx="3" fill="white"/><rect x="5" y="13" width="22" height="6" rx="3" fill="white"/></svg>
-            <span class="cc-brand">Smart<em>Clinic</em></span>
+          <div class="scanner-wrap" id="scanner-container">
+            <div id="reader"></div>
+            <div class="scanner-overlay">
+              <div class="scanner-frame"><div class="scanner-laser"></div></div>
+              <div class="scanner-hint">Align QR code within the frame</div>
+            </div>
           </div>
-          <div class="cc-sub">Official Clinic Card</div>
-          <div id="my-qr" style="display:flex;justify-content:center" class="cc-qr"></div>
-          <div class="pn" id="my-pname"></div>
-          <div class="pp" id="my-ppid"></div>
-          <div class="pi" id="my-pidnum"></div>
-          <div class="pfoot">Scan at kiosk on every visit</div>
-        </div>
-        <div style="display:flex;gap:10px;margin-top:18px">
-          <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="downloadMyCard()">⬇ Download PDF Card</button>
-        </div>
-      </div>
+
+          <button class="scan-btn" id="scan-toggle" onclick="Scanner.toggle()">
+            <span>📷</span>
+            <span id="scan-btn-text">Start Camera</span>
+          </button>
+
+          <div class="text-center mt-16 text-sm text-dim">
+            <p>
+              First time here?
+              <a
+                href="#"
+                class="link"
+                onclick="
+                  App.go('register');
+                  return false;
+                "
+                >Register as new patient</a
+              >
+            </p>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════════
+         SCREEN: REGISTRATION
+         ════════════════════════════════════════ -->
+        <section
+          id="screen-register"
+          class="screen"
+          aria-label="Patient Registration"
+        >
+          <div class="welcome">
+            <div class="icon">📝</div>
+            <h2>New Patient</h2>
+            <p>Register to get your patient QR code for quick check-ins.</p>
+          </div>
+
+          <form id="reg-form" onsubmit="Registration.submit(event)">
+            <div class="form-group">
+              <label for="reg-full_name">Full Name *</label>
+              <input
+                type="text"
+                id="reg-full_name"
+                placeholder="e.g. John Doe"
+                required
+                autocomplete="name"
+              />
+              <div class="form-error" id="err-full_name">
+                Please enter your full name
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="reg-id_number">ID Number *</label>
+              <input
+                type="text"
+                id="reg-id_number"
+                placeholder="13-digit SA ID"
+                required
+                maxlength="13"
+                pattern="\d{13}"
+              />
+              <div class="form-hint">South African ID number (13 digits)</div>
+              <div class="form-error" id="err-id_number">
+                Enter a valid 13-digit ID number
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="reg-dob">Date of Birth *</label>
+              <input type="date" id="reg-dob" required />
+              <div class="form-error" id="err-dob">
+                Please select your date of birth
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="reg-contact">Contact Number</label>
+              <input
+                type="tel"
+                id="reg-contact"
+                placeholder="e.g. 082 123 4567"
+                autocomplete="tel"
+              />
+            </div>
+            <div class="form-group">
+              <label for="reg-email">Email Address</label>
+              <input
+                type="email"
+                id="reg-email"
+                placeholder="you@example.com"
+                autocomplete="email"
+              />
+            </div>
+            <button type="submit" class="btn btn-lg btn-block" id="reg-submit">
+              <span>✨</span> Register & Get QR Code
+            </button>
+          </form>
+        </section>
+
+        <!-- ════════════════════════════════════════
+         SCREEN: PATIENT PROFILE
+         ════════════════════════════════════════ -->
+        <section
+          id="screen-profile"
+          class="screen"
+          aria-label="Patient Profile"
+        >
+          <!-- Profile Card -->
+          <div class="card">
+            <div class="profile-header">
+              <div class="profile-avatar" id="p-avatar">?</div>
+              <div class="profile-info">
+                <h2 id="p-name">Loading...</h2>
+                <p id="p-id">Patient ID: —</p>
+                <span class="badge" id="p-status">● Active Patient</span>
+              </div>
+            </div>
+
+            <div class="info-grid">
+              <div class="info-item">
+                <label>ID Number</label>
+                <value class="mono" id="p-id_number">—</value>
+              </div>
+              <div class="info-item">
+                <label>Date of Birth</label>
+                <value id="p-dob">—</value>
+              </div>
+              <div class="info-item">
+                <label>Contact</label>
+                <value id="p-contact">—</value>
+              </div>
+              <div class="info-item">
+                <label>Email</label>
+                <value id="p-email">—</value>
+              </div>
+              <div class="info-item full">
+                <label>Registered On</label>
+                <value id="p-registered">—</value>
+              </div>
+            </div>
+          </div>
+
+          <!-- QR Code -->
+          <div class="card qr-section">
+            <div class="card-title">Your Check-In QR</div>
+            <p>Show this at reception for quick check-in</p>
+            <div class="qr-wrap" id="qr-display"></div>
+            <div class="qr-id" id="qr-patient-id"></div>
+          </div>
+
+          <!-- Appointments -->
+          <div class="card">
+            <div class="card-title">Your Appointments</div>
+            <div id="appt-container">
+              <div class="appt-empty">
+                <div class="icon">📅</div>
+                <h3>No appointments yet</h3>
+                <p>Your scheduled appointments will appear here.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex gap-12">
+            <button class="btn btn-primary btn-block" onclick="App.go('scan')">
+              <span>📷</span> Scan Again
+            </button>
+            <button
+              class="btn btn-outline btn-block"
+              onclick="App.go('register')"
+            >
+              <span>📝</span> New Patient
+            </button>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════════
+         SCREEN: APPOINTMENT DETAIL
+         ════════════════════════════════════════ -->
+        <section
+          id="screen-appt"
+          class="screen"
+          aria-label="Appointment Details"
+        >
+          <div class="detail-header">
+            <button class="back-btn" onclick="App.go('profile')">←</button>
+            <h2>Appointment</h2>
+          </div>
+
+          <div class="card" id="appt-detail-card">
+            <div id="appt-detail-content">
+              <div style="display: flex; flex-direction: column; gap: 12px">
+                <div
+                  style="
+                    height: 20px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 6px;
+                    width: 60%;
+                  "
+                ></div>
+                <div
+                  style="
+                    height: 20px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 6px;
+                    width: 80%;
+                  "
+                ></div>
+                <div
+                  style="
+                    height: 20px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 6px;
+                    width: 50%;
+                  "
+                ></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Bottom Navigation -->
+      <nav class="bottom-nav" role="navigation" aria-label="App navigation">
+        <button
+          class="bottom-nav-item active"
+          data-screen="scan"
+          onclick="App.go('scan')"
+        >
+          <span class="icon">📷</span>
+          <span>Scan</span>
+        </button>
+        <button
+          class="bottom-nav-item"
+          data-screen="profile"
+          onclick="App.go('profile')"
+        >
+          <span class="icon">👤</span>
+          <span>Profile</span>
+        </button>
+        <button
+          class="bottom-nav-item"
+          data-screen="register"
+          onclick="App.go('register')"
+        >
+          <span class="icon">📝</span>
+          <span>Register</span>
+        </button>
+      </nav>
     </div>
 
-    <!-- APPOINTMENTS -->
-    <div id="sec-appointments" class="hidden">
-      <div class="card">
-        <div class="card-title">My Appointments</div>
-        <div id="my-appts"></div>
-      </div>
-    </div>
+    <!-- Fallback utilities -->
+    <script>
+      if (!window.$) window.$ = (id) => document.getElementById(id);
+      if (!window.api) window.api = {};
+    </script>
+    <script src="../js/api.js"></script>
 
-  </div>
-</div>
-</div>
+    <script>
+      /* ═══════════════════════════════════════════════════════════════
+   SmartClinic Patient Terminal
+   Design: matches shared.css / admin dashboard / login page
+   ═══════════════════════════════════════════════════════════════ */
 
-<script src="../js/api.js"></script>
-<script>
-const user=requireAuth('patient');
-let myPatient=null;
-if(user){
-  const displayName=user.full_name||user.name||'Patient';
-  $('sb-name').textContent=displayName;
-  myPatient=SC.patients.find(p=>p.patient_id===user.patient_id)||SC.patients[0];
-  $('sb-av').textContent=(myPatient?.full_name||displayName).split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
-  $('sb-pid').textContent=myPatient?.patient_id||'—';
-}
+      (function () {
+        "use strict";
 
-function tick(){$('clock').textContent=new Date().toLocaleTimeString('en-ZA');}tick();setInterval(tick,1000);
+        /* ── Config ── */
+        const CONFIG = {
+          API_BASE: "",
+          SCANNER_FPS: 10,
+          SCANNER_BOX: { width: 200, height: 200 },
+          TOAST_DURATION: 4000,
+        };
 
-var SECS={status:'sec-status',card:'sec-card',appointments:'sec-appointments'};
-var TITLES={status:'My Status',card:'My QR Card',appointments:'My Appointments'};
-function go(name,evt){
-  evt = evt || window.event;
-  if(evt && evt.preventDefault) evt.preventDefault();
-  Object.keys(SECS).forEach(k=>$(SECS[k]).classList.add('hidden'));
-  $(SECS[name]).classList.remove('hidden');
-  if(evt&&evt.target){document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));evt.target.closest('.nav-item')&&evt.target.closest('.nav-item').classList.add('active');}
-  $('pg-title').textContent=TITLES[name];
-  if(name==='card')renderMyCard();
-  if(name==='appointments')renderMyAppts();
-  if(name==='status')refreshPat();
-  return false;
-}
+        /* ── State ── */
+        const State = {
+          currentScreen: "scan",
+          scanner: null,
+          scannerActive: false,
+          patient: null,
+          appointments: [],
+        };
 
-function refreshPat(){
-  if(!myPatient)return;
-  const entry=SC.queueEntries.find(q=>q.patient_id===myPatient.patient_id&&(q.status==='CheckedIn'||q.status==='Consulting'));
-  const pred=SC.predictionLogs.find(p=>p.patient_id===myPatient.patient_id&&p.actual===null);
-  if(entry){
-    $('status-in').classList.remove('hidden');$('status-out').classList.add('hidden');
-    $('pat-qn').textContent='#'+entry.queue_position;
-    const ahead=SC.queueEntries.filter(q=>q.status==='CheckedIn'&&q.queue_position<entry.queue_position).length;
-    $('pat-ahead').textContent=ahead;$('pat-avg').textContent=rollingAvg()+'m';
-    const wait=pred?pred.estimated_wait:calcWait(ahead);
-    $('pat-wt').textContent=wait>0?'Estimated wait: '+wait+' minutes':'Doctor is ready for you!';
-  }else{
-    $('status-in').classList.add('hidden');$('status-out').classList.remove('hidden');
-  }
-}
-function simMyCI(){
-  if(!myPatient)return;
-  const res=doCheckin(myPatient.patient_id,'QR_Scan');
-  if(!res.ok){alert(res.error);return;}
-  refreshPat();
-}
+        /* ── DOM ── */
+        const DOM = {
+          get: (id) => document.getElementById(id),
+          show: (id) => DOM.get(id)?.classList.add("active"),
+          hide: (id) => DOM.get(id)?.classList.remove("active"),
+          setText: (id, text) => {
+            const el = DOM.get(id);
+            if (el) el.textContent = text;
+          },
+          setHTML: (id, html) => {
+            const el = DOM.get(id);
+            if (el) el.innerHTML = html;
+          },
+        };
 
-function renderMyCard(){
-  if(!myPatient)return;
-  $('my-pname').textContent=myPatient.full_name;
-  $('my-ppid').textContent=myPatient.patient_id;
-  $('my-pidnum').textContent='ID: '+myPatient.id_number;
-  const d=$('my-qr');d.innerHTML='';
-  new QRCode(d,{text:myPatient.patient_id,width:140,height:140,colorDark:'#006B60',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.H});
-}
+        /* ── Format ── */
+        const Format = {
+          date: (iso) => {
+            if (!iso) return "—";
+            const d = new Date(iso);
+            return Number.isNaN(d.getTime())
+              ? "—"
+              : d.toLocaleDateString("en-ZA", {
+                  weekday: "short",
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                });
+          },
+          time: (iso) => {
+            if (!iso) return "—";
+            const d = new Date(iso);
+            return Number.isNaN(d.getTime())
+              ? "—"
+              : d.toLocaleTimeString("en-ZA", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+          },
+          dateTime: (iso) => {
+            if (!iso) return "—";
+            const d = new Date(iso);
+            return Number.isNaN(d.getTime())
+              ? "—"
+              : `${Format.date(iso)} at ${Format.time(iso)}`;
+          },
+          initials: (name) =>
+            name
+              ?.split(" ")
+              .map((n) => n[0])
+              .join("")
+              .toUpperCase()
+              .slice(0, 2) || "??",
+          escape: (str) =>
+            String(str ?? "").replace(
+              /[&<>"']/g,
+              (c) =>
+                ({
+                  "&": "&amp;",
+                  "<": "&lt;",
+                  ">": "&gt;",
+                  '"': "&quot;",
+                  "'": "&#39;",
+                })[c],
+            ),
+          maskId: (id) => (id ? `${id.slice(0, 6)} **** ${id.slice(10)}` : "—"),
+        };
 
-function downloadMyCard(){
-  const p=myPatient;if(!p)return;
-  const canvas=document.querySelector('#my-qr canvas');if(!canvas){alert('QR not ready');return;}
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({unit:'mm',format:[85,54]});
-  doc.setFillColor(7,53,48);doc.rect(0,0,85,54,'F');
-  doc.setFillColor(0,200,150);doc.roundedRect(5,5,12,12,2,2,'F');
-  doc.setFillColor(255,255,255);doc.rect(9.5,7,3,8,'F');doc.rect(7,10,8,3,'F');
-  doc.setTextColor(255,255,255);doc.setFont('courier','bold');doc.setFontSize(9);doc.text('SmartClinic',20,10);
-  doc.setFont('helvetica','normal');doc.setFontSize(5.5);doc.setTextColor(178,223,219);doc.text('OFFICIAL CLINIC CARD',20,14.5);
-  doc.addImage(canvas.toDataURL('image/png'),'PNG',5,18,26,26);
-  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text(p.full_name,34,22);
-  doc.setFont('courier','bold');doc.setFontSize(10);doc.setTextColor(0,200,150);doc.text(p.patient_id,34,29);
-  doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(178,223,219);doc.text('ID: '+p.id_number,34,35);
-  doc.setFontSize(5.5);doc.setTextColor(80,140,130);doc.text('Keep this card safe. Present at every visit.',5,51);
-  doc.save('SmartClinic-Card-'+p.patient_id+'.pdf');
-}
+        /* ── API ── */
+        const API = {
+          async request(endpoint, options = {}) {
+            const url = endpoint.startsWith("http")
+              ? endpoint
+              : `${CONFIG.API_BASE}${endpoint}`;
+            const res = await fetch(url, {
+              headers: { "Content-Type": "application/json" },
+              ...options,
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+          },
+          get: (e) => API.request(e),
+          post: (e, body) =>
+            API.request(e, { method: "POST", body: JSON.stringify(body) }),
+          patients: () =>
+            window.api?.getPatients
+              ? window.api.getPatients()
+              : API.get("/api/patients"),
+          createPatient: (data) =>
+            window.api?.createPatient
+              ? window.api.createPatient(data)
+              : API.post("/api/patients", data),
+          patientById: (id) =>
+            window.api?.getPatient
+              ? window.api.getPatient(id)
+              : API.get(`/api/patients/${id}`),
+          apptByPatient: (id) => API.get(`/api/appointments?patient_id=${id}`),
+        };
 
-function renderMyAppts(){
-  if(!myPatient)return;
-  const appts=SC.appointments.filter(a=>a.patient_id===myPatient.patient_id);
-  const c=$('my-appts');
-  if(!appts.length){c.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:28px">No appointments found.</div>';return;}
-  c.innerHTML=appts.map(a=>`<div class="appt-row"><div class="at">${fmtDateTime(a.datetime)}</div><div class="ad">${a.doctor}</div><div class="ar">${a.reason||'—'}</div><span class="badge badge-${a.status==='Booked'?'amber':'green'}" style="margin-top:6px">${a.status}</span></div>`).join('');
-}
+        /* ── Toast ── */
+        const Toast = {
+          show(message, type = "info") {
+            const container = DOM.get("toasts");
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+            const icons = { success: "✅", error: "❌", info: "ℹ️" };
+            toast.innerHTML = `<span>${icons[type] || "ℹ️"}</span><span>${Format.escape(message)}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+              toast.style.animation = "toastOut 0.3s ease forwards";
+              setTimeout(() => toast.remove(), 300);
+            }, CONFIG.TOAST_DURATION);
+          },
+        };
 
-refreshPat();setInterval(refreshPat,5000);
-document.addEventListener('sensor2tick',refreshPat);
-</script>
-</body>
+        /* ── App Navigation ── */
+        const App = {
+          screens: ["scan", "register", "profile", "appt"],
+
+          go(name) {
+            if (!App.screens.includes(name)) return;
+            App.screens.forEach((s) => DOM.hide(`screen-${s}`));
+            DOM.show(`screen-${name}`);
+            State.currentScreen = name;
+
+            document.querySelectorAll(".bottom-nav-item").forEach((el) => {
+              el.classList.toggle("active", el.dataset.screen === name);
+            });
+
+            if (name === "scan") Scanner.init();
+            if (name === "profile" && State.patient)
+              Profile.render(State.patient);
+          },
+        };
+        window.App = App;
+
+        /* ── QR Scanner ── */
+        const Scanner = {
+          async init() {
+            if (State.scanner) return;
+            try {
+              State.scanner = new Html5Qrcode("reader");
+            } catch (e) {
+              console.error("Scanner init failed:", e);
+            }
+          },
+
+          async toggle() {
+            const btn = DOM.get("scan-toggle");
+            const btnText = DOM.get("scan-btn-text");
+
+            if (State.scannerActive) {
+              await Scanner.stop();
+              btnText.textContent = "Start Camera";
+              State.scannerActive = false;
+            } else {
+              try {
+                await State.scanner.start(
+                  { facingMode: "environment" },
+                  { fps: CONFIG.SCANNER_FPS, qrbox: CONFIG.SCANNER_BOX },
+                  Scanner.onScan,
+                  Scanner.onError,
+                );
+                btnText.textContent = "Stop Camera";
+                State.scannerActive = true;
+                Toast.show("Camera active — align QR code", "info");
+              } catch (e) {
+                Toast.show(
+                  "Camera access denied. Allow permissions and try again.",
+                  "error",
+                );
+              }
+            }
+          },
+
+          async stop() {
+            if (State.scanner && State.scannerActive) {
+              await State.scanner.stop();
+              State.scannerActive = false;
+            }
+          },
+
+          onScan(decodedText) {
+            let patientId = decodedText;
+            try {
+              const parsed = JSON.parse(decodedText);
+              if (parsed.patient_id) patientId = parsed.patient_id;
+            } catch {
+              /* plain text */
+            }
+
+            Toast.show("QR detected! Loading profile...", "success");
+            Scanner.stop();
+            Profile.load(patientId);
+          },
+
+          onError(err) {
+            if (err.includes("No MultiFormat Readers")) return;
+          },
+        };
+
+        /* ── Profile ── */
+        const Profile = {
+          async load(patientId) {
+            try {
+              let patient = null;
+              try {
+                const res = await API.patientById(patientId);
+                patient = res.data;
+              } catch {
+                const res = await API.patients();
+                patient = (res.data || []).find(
+                  (p) =>
+                    p.patient_id === patientId || p.id_number === patientId,
+                );
+              }
+
+              if (!patient) {
+                Toast.show(
+                  "Patient not found. Please register first.",
+                  "error",
+                );
+                App.go("register");
+                return;
+              }
+
+              State.patient = patient;
+
+              try {
+                const apptRes = await API.apptByPatient(patient.patient_id);
+                State.appointments = apptRes.data || [];
+              } catch {
+                State.appointments = [];
+              }
+
+              Profile.render(patient);
+              App.go("profile");
+            } catch (e) {
+              Toast.show("Failed to load patient data", "error");
+            }
+          },
+
+          render(patient) {
+            DOM.setText("p-avatar", Format.initials(patient.full_name));
+            DOM.setText("p-name", patient.full_name);
+            DOM.setText(
+              "p-id",
+              `Patient ID: ${patient.patient_id?.slice(0, 8) || "—"}...`,
+            );
+            DOM.setText("p-id_number", Format.maskId(patient.id_number));
+            DOM.setText("p-dob", Format.date(patient.dob));
+            DOM.setText("p-contact", patient.contact || "—");
+            DOM.setText("p-email", patient.email || "—");
+            DOM.setText("p-registered", Format.date(patient.created_at));
+
+            Profile.generateQR(patient.patient_id);
+            Profile.renderAppointments();
+          },
+
+          generateQR(patientId) {
+            const container = DOM.get("qr-display");
+            container.innerHTML = "";
+            const qrData = JSON.stringify({
+              patient_id: patientId,
+              source: "smartclinic",
+            });
+            new QRCode(container, {
+              text: qrData,
+              width: 180,
+              height: 180,
+              colorDark: "#0b1120",
+              colorLight: "#ffffff",
+              correctLevel: QRCode.CorrectLevel.H,
+            });
+            DOM.setText("qr-patient-id", `ID: ${patientId?.slice(0, 12)}...`);
+          },
+
+          renderAppointments() {
+            const container = DOM.get("appt-container");
+            const appts = State.appointments;
+
+            if (!appts?.length) {
+              container.innerHTML = `
+          <div class="appt-empty">
+            <div class="icon">📅</div>
+            <h3>No appointments yet</h3>
+            <p>Your scheduled appointments will appear here.</p>
+          </div>`;
+              return;
+            }
+
+            const cfg = {
+              Booked: { icon: "📅", cls: "scheduled", label: "Scheduled" },
+              CheckedIn: { icon: "✅", cls: "scheduled", label: "Checked In" },
+              Consulting: { icon: "👨‍⚕️", cls: "pending", label: "In Progress" },
+              Completed: { icon: "✔️", cls: "completed", label: "Completed" },
+              Cancelled: { icon: "❌", cls: "cancelled", label: "Cancelled" },
+              NoShow: { icon: "⚠️", cls: "cancelled", label: "No Show" },
+            };
+
+            container.innerHTML = `<div class="appt-list">${appts
+              .map((a) => {
+                const c = cfg[a.status] || cfg.Booked;
+                const doc = a.doctors?.name || "Unassigned";
+                const dept = a.doctors?.department || "";
+                return `
+          <div class="appt-card" onclick="Profile.showDetail('${a.appointment_id}')">
+            <div class="appt-icon ${c.cls}">${c.icon}</div>
+            <div class="appt-details">
+              <h4>${Format.escape(doc)} ${dept ? `<span style="color:var(--text-dim);font-weight:400">(${Format.escape(dept)})</span>` : ""}</h4>
+              <p>${Format.dateTime(a.datetime)}</p>
+              ${a.reason ? `<p style="margin-top:2px;font-size:0.75rem">${Format.escape(a.reason)}</p>` : ""}
+            </div>
+            <span class="appt-status ${c.cls}">${c.label}</span>
+          </div>`;
+              })
+              .join("")}</div>`;
+          },
+
+          showDetail(id) {
+            const a = State.appointments.find((x) => x.appointment_id === id);
+            if (!a) return;
+
+            const st = {
+              Booked: { cls: "scheduled", label: "Scheduled" },
+              CheckedIn: { cls: "scheduled", label: "Checked In" },
+              Consulting: { cls: "pending", label: "In Progress" },
+              Completed: { cls: "completed", label: "Completed" },
+              Cancelled: { cls: "cancelled", label: "Cancelled" },
+            }[a.status] || { cls: "", label: a.status };
+
+            DOM.setHTML(
+              "appt-detail-content",
+              `
+        <div class="detail-status ${st.cls}">${st.label}</div>
+        <div class="info-grid">
+          <div class="info-item"><label>Doctor</label><value>${Format.escape(a.doctors?.name || "—")}</value></div>
+          <div class="info-item"><label>Department</label><value>${Format.escape(a.doctors?.department || "—")}</value></div>
+          <div class="info-item full"><label>Date & Time</label><value>${Format.dateTime(a.datetime)}</value></div>
+          <div class="info-item full"><label>Reason</label><value>${Format.escape(a.reason) || "—"}</value></div>
+          <div class="info-item full"><label>Appointment ID</label><value class="mono" style="font-size:0.8rem">${a.appointment_id}</value></div>
+        </div>
+      `,
+            );
+            App.go("appt");
+          },
+        };
+        window.Profile = Profile;
+
+        /* ── Registration ── */
+        const Registration = {
+          async submit(e) {
+            e.preventDefault();
+            const btn = DOM.get("reg-submit");
+            btn.disabled = true;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "<span>⏳</span> Registering...";
+
+            // Clear errors
+            document
+              .querySelectorAll(".form-error")
+              .forEach((el) => el.classList.remove("visible"));
+
+            const payload = {
+              full_name: DOM.get("reg-full_name").value.trim(),
+              id_number: DOM.get("reg-id_number").value.trim(),
+              dob: DOM.get("reg-dob").value || null,
+              contact: DOM.get("reg-contact").value.trim() || null,
+              email: DOM.get("reg-email").value.trim() || null,
+            };
+
+            // Validate
+            let valid = true;
+            if (!payload.full_name) {
+              DOM.get("err-full_name").classList.add("visible");
+              valid = false;
+            }
+            if (!payload.id_number || !/^\\d{13}$/.test(payload.id_number)) {
+              DOM.get("err-id_number").classList.add("visible");
+              valid = false;
+            }
+            if (!payload.dob) {
+              DOM.get("err-dob").classList.add("visible");
+              valid = false;
+            }
+
+            if (!valid) {
+              btn.disabled = false;
+              btn.innerHTML = originalText;
+              return;
+            }
+
+            try {
+              const res = await API.createPatient(payload);
+              const patient = res.data;
+              Toast.show(
+                "Welcome to SmartClinic! Registration successful.",
+                "success",
+              );
+
+              State.patient = patient;
+              State.appointments = [];
+              Profile.render(patient);
+              App.go("profile");
+              e.target.reset();
+            } catch (err) {
+              Toast.show(
+                "Registration failed: " + (err.message || "Please try again"),
+                "error",
+              );
+            } finally {
+              btn.disabled = false;
+              btn.innerHTML = originalText;
+            }
+          },
+        };
+        window.Registration = Registration;
+
+        /* ── Connectivity ── */
+        function updateConn() {
+          const el = DOM.get("conn-status");
+          if (!el) return;
+          if (navigator.onLine) {
+            el.textContent = "Online";
+            el.style.color = "var(--success)";
+          } else {
+            el.textContent = "Offline";
+            el.style.color = "var(--danger)";
+          }
+        }
+        window.addEventListener("online", updateConn);
+        window.addEventListener("offline", updateConn);
+
+        /* ── Init ── */
+        function init() {
+          updateConn();
+          Scanner.init();
+        }
+
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", init);
+        } else {
+          init();
+        }
+      })();
+    </script>
+  </body>
 </html>

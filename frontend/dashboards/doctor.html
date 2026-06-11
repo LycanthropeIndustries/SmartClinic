@@ -1,244 +1,1573 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SmartClinic — Doctor</title>
-<link rel="stylesheet" href="../css/shared.css">
-<style>
-.timer-big{font-family:var(--mono);font-size:3.5rem;font-weight:700;color:var(--green);text-align:center;line-height:1;padding:14px 0}
-.patient-hero{background:rgba(0,200,150,.08);border:1px solid rgba(0,200,150,.2);border-radius:14px;padding:18px;text-align:center;margin-bottom:14px}
-.patient-hero .pn{font-size:1.3rem;font-weight:700}
-.patient-hero .pp{font-family:var(--mono);color:var(--green);font-size:.85rem;margin-top:3px}
-.formula-box{background:rgba(0,200,150,.05);border:1px dashed rgba(0,200,150,.25);border-radius:10px;padding:13px;font-family:var(--mono);font-size:.78rem;color:var(--green);white-space:pre-wrap;line-height:1.7}
-.qp{font-family:var(--mono);font-weight:700;color:var(--green)}
-.doc-contact{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:.82rem;display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.doc-contact .dc-num{font-family:var(--mono);color:var(--green);font-size:.8rem}
-</style>
-</head>
-<body>
-<div class="dash-shell">
-<aside class="sidebar">
-  <div class="sidebar-brand">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-      <svg width="26" height="26" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#00C896"/><rect x="13" y="5" width="6" height="22" rx="3" fill="white"/><rect x="5" y="13" width="22" height="6" rx="3" fill="white"/></svg>
-      <span style="font-family:var(--mono);font-size:1rem;font-weight:700;color:#fff">Smart<span style="color:var(--green)">Clinic</span></span>
-    </div>
-    <div class="role-pill">Doctor</div>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">Main</div>
-    <a class="nav-item active" href="#" onclick="return go('consult',event)"><span class="icon">👨‍⚕️</span>Consultation</a>
-    <a class="nav-item" href="#" onclick="return go('queue',event)"><span class="icon">🖥</span>My Queue</a>
-    <a class="nav-item" href="#" onclick="return go('prediction',event)"><span class="icon">⏱</span>Prediction Log</a>
-    <a class="nav-item" href="#" onclick="return go('contacts',event)"><span class="icon">📞</span>Doctor Contacts</a>
-  </nav>
-  <div class="sidebar-footer">
-    <div class="user-chip">
-      <div class="av" id="sb-av">MN</div>
-      <div class="info"><div class="uname" id="sb-name">Dr M. Nkosi</div><div class="urole" id="sb-contact">031-555-0101</div></div>
-    </div>
-    <button class="btn btn-outline btn-sm btn-block" style="margin-top:10px" onclick="logout()">Sign Out</button>
-  </div>
-</aside>
-
-<div class="main-content">
-  <div class="topbar">
-    <div><div class="topbar-title" id="pg-title">Consultation</div><div class="topbar-meta" id="pg-meta">Manage your active consultation</div></div>
-    <div class="topbar-right">
-      <span class="badge badge-green" id="q-badge">0 waiting</span>
-      <span style="font-size:.78rem;color:var(--text-dim)" id="clock"></span>
-    </div>
-  </div>
-  <div class="page-body">
-
-    <!-- CONSULTATION -->
-    <div id="sec-consult">
-      <div class="g2" style="align-items:start">
-
-        <!-- Active panel -->
-        <div class="card fade-in">
-          <div class="card-title">Active Consultation</div>
-          <div id="no-patient" style="text-align:center;padding:28px 0;color:var(--text-dim)">
-            <div style="font-size:3rem;margin-bottom:10px">🩺</div>
-            <div style="font-weight:600">No active consultation</div>
-            <div style="font-size:.8rem;margin-top:4px" id="next-lbl">No patients waiting.</div>
-          </div>
-          <div id="active-panel" class="hidden">
-            <div class="patient-hero">
-              <div class="pn" id="doc-pname">—</div>
-              <div class="pp" id="doc-ppid">—</div>
-            </div>
-            <div class="timer-big" id="doc-timer">00:00</div>
-            <button class="btn btn-danger btn-lg btn-block" onclick="endConsult()">⏹ End Consultation</button>
-          </div>
-          <hr class="div">
-          <div id="next-alert" class="alert alert-info hidden" style="margin-bottom:10px"></div>
-          <button id="begin-btn" class="btn btn-primary btn-lg btn-block" onclick="beginConsult()" disabled>▶ Begin Next Consultation</button>
-          <p style="font-size:.72rem;color:var(--text-dim);margin-top:7px" id="begin-sub">No patients waiting.</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=yes"
+    />
+    <title>SmartClinic · Doctor Portal</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      :root {
+        --sc-teal: #009e78;
+        --sc-teal-light: #6ee7c6;
+        --sc-teal-dark: #007a5c;
+        --sc-bg: #0a2a2f;
+        --sc-card: rgba(255, 255, 255, 0.05);
+        --sc-text-dim: rgba(255, 255, 255, 0.55);
+        --sc-mono: "SF Mono", "Fira Code", monospace;
+        --sc-red: #ef4444;
+        --input-bg: rgba(5, 25, 28, 0.7);
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--sc-bg);
+        color: #fff;
+        line-height: 1.5;
+      }
+      .container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 28px 32px 48px;
+      }
+      .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 36px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+      .logo-area {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .logo-icon {
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(
+          135deg,
+          var(--sc-teal),
+          var(--sc-teal-dark)
+        );
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .logo-icon i {
+        font-size: 24px;
+        color: white;
+      }
+      .logo-area h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #fff, var(--sc-teal-light));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .nav-list {
+        display: flex;
+        gap: 6px;
+        background: rgba(10, 42, 47, 0.7);
+        backdrop-filter: blur(12px);
+        border-radius: 60px;
+        padding: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 24px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        background: transparent;
+        color: var(--sc-text-dim);
+        cursor: pointer;
+        transition: all 0.25s ease;
+      }
+      .nav-item i {
+        font-size: 1rem;
+      }
+      .nav-item.active {
+        background: var(--sc-teal);
+        color: white;
+      }
+      .doctor-info-header {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        background: var(--sc-card);
+        backdrop-filter: blur(8px);
+        padding: 8px 20px;
+        border-radius: 60px;
+        position: relative;
+      }
+      .live-clock {
+        font-family: var(--sc-mono);
+        font-size: 0.85rem;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 4px 12px;
+        border-radius: 40px;
+        color: var(--sc-teal-light);
+      }
+      .logout-btn {
+        background: rgba(239, 68, 68, 0.2);
+        border: 1px solid rgba(239, 68, 68, 0.5);
+        padding: 6px 16px;
+        border-radius: 40px;
+        color: #ffb3b3;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.8rem;
+        transition: 0.2s;
+      }
+      .logout-btn:hover {
+        background: var(--sc-red);
+        color: white;
+      }
+      .notification-bell {
+        position: relative;
+        cursor: pointer;
+        font-size: 1.2rem;
+        color: var(--sc-text-dim);
+        transition: 0.2s;
+      }
+      .notification-bell:hover {
+        color: var(--sc-teal-light);
+      }
+      .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: var(--sc-red);
+        color: white;
+        font-size: 0.6rem;
+        padding: 2px 6px;
+        border-radius: 20px;
+        font-weight: bold;
+      }
+      .notification-panel {
+        position: absolute;
+        top: 50px;
+        right: 0;
+        width: 340px;
+        max-height: 400px;
+        background: #0e3a3f;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        z-index: 1000;
+        display: none;
+        overflow-y: auto;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .notification-panel.show {
+        display: block;
+      }
+      .notification-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .notification-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .notification-item.unread {
+        background: rgba(0, 158, 120, 0.15);
+        border-left: 3px solid var(--sc-teal);
+      }
+      .notification-title {
+        font-weight: 600;
+        font-size: 0.8rem;
+      }
+      .notification-time {
+        font-size: 0.65rem;
+        color: var(--sc-text-dim);
+        margin-top: 4px;
+      }
+      .sc-card {
+        background: var(--sc-card);
+        border-radius: 32px;
+        padding: 28px;
+        margin-bottom: 28px;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+        gap: 28px;
+      }
+      .section-title {
+        font-size: 0.7rem;
+        color: var(--sc-text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 20px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .doctor-profile-header {
+        display: flex;
+        gap: 32px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      .avatar-large {
+        width: 112px;
+        height: 112px;
+        background: linear-gradient(145deg, var(--sc-teal), #065a46);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: 700;
+        background-size: cover;
+        cursor: pointer;
+        border: 3px solid rgba(255, 255, 255, 0.15);
+      }
+      .info-row {
+        margin: 14px 0;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 12px;
+      }
+      .info-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--sc-text-dim);
+        width: 80px;
+        font-weight: 600;
+      }
+      .info-value {
+        font-weight: 500;
+        flex: 1;
+        color: rgba(255, 255, 255, 0.8);
+      }
+      .edit-icon {
+        background: rgba(255, 255, 255, 0.08);
+        border: none;
+        color: var(--sc-teal-light);
+        cursor: pointer;
+        font-size: 0.7rem;
+        padding: 6px 10px;
+        border-radius: 30px;
+      }
+      .profile-edit-form {
+        display: none;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .calendar-widget {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 28px;
+        padding: 20px;
+        margin-top: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+      }
+      .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        cursor: pointer;
+        padding: 6px 12px;
+        border-radius: 60px;
+        background: rgba(0, 0, 0, 0.2);
+      }
+      .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        text-align: center;
+      }
+      .cal-day {
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 40px;
+        padding: 10px 0;
+        font-size: 0.8rem;
+      }
+      .cal-day.available {
+        background: rgba(0, 158, 120, 0.25);
+        color: var(--sc-teal-light);
+        font-weight: 600;
+      }
+      .slot-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 16px 0;
+      }
+      .time-slot {
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 30px;
+        padding: 6px 16px;
+        font-size: 0.7rem;
+        font-family: var(--sc-mono);
+      }
+      .btn-sm {
+        background: var(--sc-teal);
+        border: none;
+        padding: 8px 18px;
+        border-radius: 40px;
+        color: white;
+        cursor: pointer;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .btn-sm:hover {
+        background: var(--sc-teal-dark);
+        transform: translateY(-1px);
+      }
+      .btn-outline {
+        background: transparent;
+        border: 1px solid var(--sc-teal);
+        color: var(--sc-teal-light);
+      }
+      .sc-badge-green {
+        background: rgba(0, 158, 120, 0.2);
+        color: var(--sc-teal-light);
+        padding: 4px 14px;
+        border-radius: 40px;
+        font-size: 0.7rem;
+        font-weight: 600;
+      }
+      .tab-panel {
+        display: none;
+        animation: fadeIn 0.25s ease;
+      }
+      .tab-panel.active {
+        display: block;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .empty-state {
+        text-align: center;
+        padding: 48px 24px;
+        color: var(--sc-text-dim);
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 28px;
+      }
+      .timer-display {
+        font-family: var(--sc-mono);
+        font-size: 2rem;
+        text-align: center;
+        margin: 20px 0;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 12px;
+        border-radius: 60px;
+        letter-spacing: 2px;
+      }
+      .rx-card {
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 20px;
+        padding: 16px 20px;
+        margin-bottom: 12px;
+        border-left: 4px solid var(--sc-teal);
+      }
+      .rx-patient-name {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--sc-teal-light);
+        margin-bottom: 6px;
+      }
+      .toast-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 3000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      .toast-overlay.show {
+        display: flex;
+      }
+      .toast-container {
+        background: #1a4a3e;
+        border-radius: 24px;
+        padding: 28px 32px;
+        min-width: 360px;
+        max-width: 480px;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        animation: toastFadeIn 0.3s ease;
+      }
+      @keyframes toastFadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      .toast-icon {
+        font-size: 2.5rem;
+        margin-bottom: 12px;
+      }
+      .toast-message {
+        font-size: 1.1rem;
+        margin-bottom: 16px;
+        line-height: 1.4;
+      }
+      .toast-timer {
+        font-size: 0.9rem;
+        color: var(--sc-teal-light);
+        margin-bottom: 20px;
+      }
+      .toast-buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+      }
+      .toast-btn {
+        padding: 8px 24px;
+        border-radius: 40px;
+        border: none;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: 0.2s;
+      }
+      .toast-btn-confirm {
+        background: var(--sc-teal);
+        color: white;
+      }
+      .toast-btn-confirm:hover {
+        background: var(--sc-teal-dark);
+        transform: scale(1.02);
+      }
+      .toast-btn-cancel {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+      }
+      .toast-btn-cancel:hover {
+        background: rgba(255, 255, 255, 0.25);
+      }
+      .toast-btn-danger {
+        background: var(--sc-red);
+        color: white;
+      }
+      .toast-btn-danger:hover {
+        background: #dc2626;
+        transform: scale(1.02);
+      }
+      input,
+      textarea,
+      select {
+        background: var(--input-bg);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 12px 16px;
+        color: white;
+        font-family: "Inter", sans-serif;
+        font-size: 0.85rem;
+        width: 100%;
+      }
+      input:focus,
+      textarea:focus,
+      select:focus {
+        outline: none;
+        border-color: var(--sc-teal);
+        box-shadow: 0 0 0 3px rgba(0, 158, 120, 0.2);
+      }
+      .flex-between {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      @media (max-width: 780px) {
+        .container {
+          padding: 16px;
+        }
+        .top-bar {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .nav-list {
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+        .nav-item {
+          padding: 8px 16px;
+        }
+        .toast-container {
+          margin: 20px;
+          padding: 20px;
+          min-width: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="top-bar">
+        <div class="logo-area">
+          <div class="logo-icon"><i class="fas fa-stethoscope"></i></div>
+          <h1>SmartClinic · Doctor Portal</h1>
         </div>
-
-        <!-- Stats -->
-        <div style="display:flex;flex-direction:column;gap:16px">
-          <div class="card fade-in">
-            <div class="card-title">Dynamic Prediction Model</div>
-            <div class="g2" style="gap:12px;margin-bottom:12px">
-              <div class="stat-box" style="padding:14px"><div class="stat-val" id="pred-avg" style="font-size:2rem">15m</div><div class="stat-lbl">Rolling Avg</div></div>
-              <div class="stat-box" style="padding:14px"><div class="stat-val" id="pred-cnt" style="font-size:2rem">0</div><div class="stat-lbl">Done Today</div></div>
-            </div>
-            <div class="formula-box" id="pred-formula">Avg = default 15 min (no data yet)
-Waiting: 0 patients</div>
+        <div class="nav-list">
+          <div class="nav-item active" data-tab="profile">
+            <i class="fas fa-id-card"></i> Profile
           </div>
-          <div class="card fade-in">
-            <div class="card-title">Today's Stats</div>
-            <div class="g2" style="gap:12px">
-              <div class="stat-box" style="padding:14px"><div class="stat-val" id="st-w" style="font-size:2rem">0</div><div class="stat-lbl">Waiting</div></div>
-              <div class="stat-box" style="padding:14px"><div class="stat-val" id="st-d" style="font-size:2rem">0</div><div class="stat-lbl">Done</div></div>
+          <div class="nav-item" data-tab="appointments">
+            <i class="fas fa-calendar-check"></i> Appointments
+          </div>
+          <div class="nav-item" data-tab="consult">
+            <i class="fas fa-stethoscope"></i> Live Consult
+          </div>
+          <div class="nav-item" data-tab="prescriptions">
+            <i class="fas fa-prescription-bottle"></i> Rx History
+          </div>
+          <div class="nav-item" data-tab="analytics">
+            <i class="fas fa-chart-line"></i> Analytics
+          </div>
+          <div class="nav-item" data-tab="contacts">
+            <i class="fas fa-address-card"></i> Contacts
+          </div>
+        </div>
+        <div class="doctor-info-header">
+          <div class="notification-bell" id="notificationBell">
+            <i class="fas fa-bell"></i
+            ><span class="notification-badge" id="notificationBadge">0</span>
+          </div>
+          <div class="notification-panel" id="notificationPanel">
+            <div
+              style="
+                padding: 12px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                font-weight: bold;
+              "
+            >
+              Notifications
+            </div>
+            <div id="notificationList"></div>
+          </div>
+          <span
+            ><i class="fas fa-user-md"></i>
+            <span id="docShortName">Dr M. Nkosi</span></span
+          >
+          <span class="live-clock" id="liveClock">--:--</span>
+          <button class="logout-btn" id="logoutBtn">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+      </div>
+
+      <div id="profilePanel" class="tab-panel active">
+        <div class="sc-card">
+          <div class="flex-between" style="margin-bottom: 20px">
+            <h3><i class="fas fa-id-card"></i> My Profile</h3>
+            <button class="btn-sm" id="enableProfileEditBtn">
+              <i class="fas fa-pen"></i> Edit Profile
+            </button>
+          </div>
+          <div id="profileViewMode">
+            <div class="doctor-profile-header">
+              <div
+                class="avatar-large"
+                id="docAvatar"
+                onclick="triggerPhotoUpload()"
+              >
+                D
+              </div>
+              <div style="flex: 1">
+                <div class="info-row">
+                  <span class="info-label">Full Name</span
+                  ><span class="info-value" id="docName">Dr M. Nkosi</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Specialty</span
+                  ><span class="info-value" id="docSpecialty"
+                    >General Practice</span
+                  >
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Phone</span
+                  ><span class="info-value" id="docPhone">011 234 5678</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Email</span
+                  ><span class="info-value" id="docEmail"
+                    >nkosi@smartclinic.co.za</span
+                  >
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Bio</span
+                  ><span class="info-value" id="docBio"
+                    >15+ years family medicine. Compassionate care.</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="profileEditForm" class="profile-edit-form">
+            <input type="text" id="editName" placeholder="Full Name" /><input
+              type="text"
+              id="editSpecialty"
+              placeholder="Specialty"
+            /><input type="text" id="editPhone" placeholder="Phone" /><input
+              type="email"
+              id="editEmail"
+              placeholder="Email"
+            /><textarea id="editBio" rows="2" placeholder="Bio"></textarea
+            ><input type="file" id="editAvatar" accept="image/*" />
+            <div style="display: flex; gap: 12px">
+              <button class="btn-sm" id="saveProfileBtn">Save Changes</button
+              ><button class="btn-sm btn-outline" id="cancelEditBtn">
+                Cancel
+              </button>
+            </div>
+          </div>
+          <div class="calendar-widget">
+            <div class="calendar-header" onclick="toggleCalendar()">
+              <h4>
+                <i class="fas fa-calendar-alt"></i> My Availability & Calendar
+              </h4>
+              <i class="fas fa-chevron-up" id="calendarToggleIcon"></i>
+            </div>
+            <div id="calendarContent">
+              <div id="availMsg" class="msg"></div>
+              <div class="grid-2" style="gap: 20px">
+                <div>
+                  <div class="calendar-grid" style="margin-bottom: 6px">
+                    <div>M</div>
+                    <div>T</div>
+                    <div>W</div>
+                    <div>T</div>
+                    <div>F</div>
+                    <div>S</div>
+                    <div>S</div>
+                  </div>
+                  <div id="miniCalendarDays" class="calendar-grid"></div>
+                </div>
+                <div>
+                  <select
+                    id="daySelector"
+                    class="btn-sm"
+                    style="
+                      background: var(--input-bg);
+                      width: 100%;
+                      margin: 8px 0;
+                    "
+                  ></select>
+                  <div id="daySlotsList" class="slot-list"></div>
+                  <div style="display: flex; gap: 8px">
+                    <input type="time" id="newSlotTime" step="1800" /><button
+                      class="btn-sm"
+                      onclick="addTimeSlotToDay()"
+                    >
+                      + Add
+                    </button>
+                  </div>
+                  <button
+                    class="btn-sm"
+                    onclick="saveAvailability()"
+                    style="margin-top: 12px; width: 100%"
+                  >
+                    Save Availability
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+        <div class="grid-2">
+          <div class="sc-card">
+            <div class="section-title">
+              <i class="fas fa-chart-simple"></i> Today's Performance
+            </div>
+            <div id="todayStats"></div>
+          </div>
+          <div class="sc-card">
+            <div class="section-title">
+              <i class="fas fa-bell"></i> Notifications
+            </div>
+            <div id="notificationsList"></div>
+          </div>
+        </div>
+      </div>
 
+      <div id="appointmentsPanel" class="tab-panel">
+        <div class="sc-card">
+          <div class="section-title">
+            <i class="fas fa-list-check"></i> All Appointments
+          </div>
+          <div id="appointmentsList"></div>
+        </div>
+      </div>
+
+      <div id="consultPanel" class="tab-panel">
+        <div class="grid-2">
+          <div class="sc-card">
+            <div class="section-title">
+              <i class="fas fa-microphone-alt"></i> Active Consultation
+            </div>
+            <div id="consultActive"></div>
+            <button
+              class="btn-sm"
+              id="beginBtn"
+              style="width: 100%; margin-top: 16px"
+            >
+              <i class="fas fa-play"></i> Begin Next Consultation
+            </button>
+          </div>
+          <div class="sc-card">
+            <div class="section-title">
+              <i class="fas fa-users"></i> Nurse Handoffs (Ready for Doctor)
+            </div>
+            <div id="queuePreview"></div>
+            <div
+              id="waitMessage"
+              class="sc-badge-green"
+              style="margin-top: 16px; display: inline-block"
+            ></div>
+          </div>
+        </div>
+        <div id="consultRxSection" class="sc-card" style="display: none">
+          <div class="section-title">
+            <i class="fas fa-prescription-bottle"></i> Issue Prescription for
+            <span
+              id="currentConsultPatient"
+              style="color: var(--sc-teal-light); font-weight: 700"
+            ></span>
+          </div>
+          <div id="consultRxMsg" class="msg"></div>
+          <div class="grid-2" style="gap: 16px">
+            <div>
+              <label style="font-size: 0.7rem">Medication *</label
+              ><input
+                type="text"
+                id="consultRxMed"
+                placeholder="e.g., Amoxicillin 500mg"
+              />
+            </div>
+            <div>
+              <label style="font-size: 0.7rem">Dosage & Frequency</label
+              ><input
+                type="text"
+                id="consultRxDosage"
+                placeholder="e.g., Twice daily x 7 days"
+              />
+            </div>
+          </div>
+          <div>
+            <label style="font-size: 0.7rem">Diagnosis / Notes</label
+            ><textarea
+              id="consultRxNotes"
+              rows="2"
+              placeholder="Diagnosis and special instructions"
+            ></textarea>
+          </div>
+          <button
+            class="btn-sm"
+            onclick="issuePrescriptionForCurrentPatient()"
+            style="margin-top: 16px; width: 100%"
+          >
+            <i class="fas fa-paper-plane"></i> Attach to Patient & Save
+          </button>
+        </div>
+      </div>
+
+      <div id="prescriptionsPanel" class="tab-panel">
+        <div class="sc-card">
+          <div class="section-title">
+            <i class="fas fa-file-prescription"></i> Complete Prescription
+            History
+          </div>
+          <input
+            type="text"
+            id="searchPatientRx"
+            placeholder="Search by patient name..."
+            style="margin-bottom: 20px"
+            oninput="filterPrescriptions()"
+          />
+          <div id="allPrescriptionsList"></div>
+        </div>
+      </div>
+      <div id="analyticsPanel" class="tab-panel">
+        <div class="sc-card">
+          <div class="section-title">
+            <i class="fas fa-chart-line"></i> Prediction Accuracy & Metrics
+          </div>
+          <div
+            id="analyticsStats"
+            class="grid-2"
+            style="margin-bottom: 20px"
+          ></div>
+          <div id="predictionTable"></div>
+        </div>
+      </div>
+      <div id="contactsPanel" class="tab-panel">
+        <div class="sc-card">
+          <div class="section-title">
+            <i class="fas fa-phone-alt"></i> Staff Directory
+          </div>
+          <div id="staffList"></div>
+        </div>
       </div>
     </div>
 
-    <!-- MY QUEUE -->
-    <div id="sec-queue" class="hidden">
-      <div class="card">
-        <div class="section-header"><h3>My Queue — Patients Waiting</h3><button class="btn btn-outline btn-sm" onclick="refreshDoc()">↻ Refresh</button></div>
-        <div class="tbl-wrap"><table><thead><tr><th>#</th><th>Patient</th><th>ID</th><th>Checked In</th><th>Est. Wait</th><th>Status</th></tr></thead><tbody id="dq-tbody"></tbody></table></div>
+    <div id="toastOverlay" class="toast-overlay">
+      <div class="toast-container">
+        <div class="toast-icon" id="toastIcon">
+          <i class="fas fa-info-circle"></i>
+        </div>
+        <div class="toast-message" id="toastMessage"></div>
+        <div class="toast-timer">
+          Auto-closing in <span id="timerSeconds">16</span> seconds
+        </div>
+        <div class="toast-buttons">
+          <button
+            class="toast-btn toast-btn-confirm"
+            id="toastConfirmBtn"
+            style="display: none"
+          >
+            OK</button
+          ><button class="toast-btn toast-btn-cancel" id="toastDismissBtn">
+            Dismiss
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- PREDICTION LOG -->
-    <div id="sec-prediction" class="hidden">
-      <div class="card">
-        <div class="card-title">PREDICTION_LOGS — Today</div>
-        <div class="tbl-wrap"><table><thead><tr><th>Patient</th><th>Queue #</th><th>Estimated</th><th>Actual</th><th>Accuracy</th></tr></thead><tbody id="pl-tbody"></tbody></table></div>
-      </div>
-    </div>
+    <script>
+      const STORAGE_KEY = "smartclinic_portal_data";
+      let toastTimeout = null,
+        toastTimerInterval = null;
 
-    <!-- DOCTOR CONTACTS -->
-    <div id="sec-contacts" class="hidden">
-      <div class="card" style="max-width:500px">
-        <div class="card-title">Doctor Contact Numbers</div>
-        <p style="font-size:.82rem;color:var(--text-dim);margin-bottom:16px">All clinic doctors and their direct contact numbers.</p>
-        <div id="doc-contacts-list"></div>
-      </div>
-    </div>
+      function loadStore() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) window.store = JSON.parse(stored);
+        else {
+          window.store = getDefaultData();
+          saveStore();
+        }
+        window.currentDoctor = window.store.doctors[0];
+        window.activeConsult =
+          window.store.doctorActiveConsults?.find(
+            (c) => c.status === "active",
+          ) || null;
+      }
+      function getDefaultData() {
+        return {
+          nurses: [
+            {
+              id: "nurse1",
+              name: "Nurse J. Molefe",
+              role: "Registered Nurse",
+              phone: "011 234 5681",
+              email: "jmolefe@smartclinic.co.za",
+              bio: "Dedicated to patient care",
+            },
+          ],
+          doctors: [
+            {
+              id: "doc1",
+              name: "Dr M. Nkosi",
+              specialty: "General Practice",
+              phone: "011 234 5678",
+              email: "nkosi@smartclinic.co.za",
+              bio: "15+ years family medicine.",
+              availability: {
+                Monday: ["09:00", "11:00"],
+                Tuesday: ["10:00", "14:00"],
+                Wednesday: ["09:00"],
+                Thursday: ["09:00", "15:00"],
+                Friday: ["09:00"],
+              },
+            },
+          ],
+          appointments: [
+            {
+              id: "APT_001",
+              patientId: "SC_001",
+              patientName: "Zanele Dlamini",
+              doctorId: "doc1",
+              doctorName: "Dr M. Nkosi",
+              datetime: "2026-08-15T09:00:00",
+              reason: "Persistent cough",
+              status: "upcoming",
+            },
+            {
+              id: "APT_002",
+              patientId: "SC_002",
+              patientName: "Thabo Mokoena",
+              doctorId: "doc1",
+              doctorName: "Dr M. Nkosi",
+              datetime: "2026-08-15T10:30:00",
+              reason: "Hypertension follow-up",
+              status: "upcoming",
+            },
+          ],
+          doctorQueue: [
+            {
+              id: "handoff_001",
+              patient_id: "SC_002",
+              patient_name: "Thabo Mokoena",
+              vitals_summary: "BP: 145/92, HR: 88, Temp: 36.8C",
+              nurse_notes: "BP elevated - needs medication review",
+              assigned_doctor: "Dr M. Nkosi",
+              assigned_doctor_id: "doc1",
+              handed_by: "Nurse J. Molefe",
+              handed_at: new Date().toISOString(),
+            },
+          ],
+          doctorActiveConsults: [],
+          prescriptions: [
+            {
+              id: "RX_001",
+              patientName: "Thabo Mokoena",
+              medication: "Amlodipine 5mg",
+              dosage: "Once daily",
+              diagnosis: "Hypertension",
+              doctorName: "Dr M. Nkosi",
+              date: "2026-08-10",
+            },
+          ],
+          consultationDurations: [14, 22, 18],
+          notifications: [
+            {
+              id: "n1",
+              title: "Welcome",
+              message: "Welcome to Doctor Portal",
+              time: new Date().toISOString(),
+              read: false,
+              type: "info",
+            },
+          ],
+        };
+      }
+      function saveStore() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(window.store));
+      }
 
-  </div>
-</div>
-</div>
+      function showToast(
+        message,
+        type = "info",
+        confirmCallback = null,
+        confirmText = "OK",
+        showCancel = true,
+      ) {
+        const overlay = document.getElementById("toastOverlay"),
+          iconEl = document.getElementById("toastIcon"),
+          msgEl = document.getElementById("toastMessage"),
+          confirmBtn = document.getElementById("toastConfirmBtn"),
+          dismissBtn = document.getElementById("toastDismissBtn"),
+          secondsSpan = document.getElementById("timerSeconds");
+        if (toastTimeout) clearTimeout(toastTimeout);
+        if (toastTimerInterval) clearInterval(toastTimerInterval);
+        if (type === "success")
+          iconEl.innerHTML =
+            '<i class="fas fa-check-circle" style="color:#6ee7c6;"></i>';
+        else if (type === "error")
+          iconEl.innerHTML =
+            '<i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i>';
+        else if (type === "logout")
+          iconEl.innerHTML =
+            '<i class="fas fa-sign-out-alt" style="color:#f59e0b;"></i>';
+        else
+          iconEl.innerHTML =
+            '<i class="fas fa-info-circle" style="color:#6ee7c6;"></i>';
+        msgEl.innerText = message;
+        if (confirmCallback) {
+          confirmBtn.style.display = "inline-block";
+          confirmBtn.innerText = confirmText;
+          confirmBtn.onclick = () => {
+            clearTimerAndClose();
+            confirmCallback();
+          };
+          if (type === "logout") {
+            confirmBtn.classList.remove("toast-btn-confirm");
+            confirmBtn.classList.add("toast-btn-danger");
+          } else {
+            confirmBtn.classList.remove("toast-btn-danger");
+            confirmBtn.classList.add("toast-btn-confirm");
+          }
+        } else confirmBtn.style.display = "none";
+        dismissBtn.style.display = showCancel ? "inline-block" : "none";
+        dismissBtn.onclick = () => clearTimerAndClose();
+        let secondsLeft = 16;
+        secondsSpan.innerText = secondsLeft;
+        toastTimerInterval = setInterval(() => {
+          secondsLeft--;
+          secondsSpan.innerText = secondsLeft;
+          if (secondsLeft <= 0) {
+            clearTimerAndClose();
+            if (confirmCallback) confirmCallback();
+          }
+        }, 1000);
+        toastTimeout = setTimeout(() => {
+          clearTimerAndClose();
+          if (confirmCallback) confirmCallback();
+        }, 16000);
+        overlay.classList.add("show");
+        function clearTimerAndClose() {
+          if (toastTimerInterval) clearInterval(toastTimerInterval);
+          if (toastTimeout) clearTimeout(toastTimeout);
+          overlay.classList.remove("show");
+        }
+      }
+      function performLogout() {
+        localStorage.clear();
+        showToast(
+          "Logged out successfully! Redirecting...",
+          "success",
+          () => {
+            location.reload();
+          },
+          "OK",
+          false,
+        );
+      }
+      function showLogoutConfirm() {
+        showToast(
+          "Are you sure you want to logout?",
+          "logout",
+          () => performLogout(),
+          "Yes, Logout",
+          true,
+        );
+      }
+      function addNotification(title, message, type) {
+        window.store.notifications.unshift({
+          id: Date.now(),
+          title,
+          message,
+          time: new Date().toISOString(),
+          read: false,
+          type,
+        });
+        saveStore();
+        renderNotifications();
+        updateNotificationBadge();
+        showToast(message, type === "success" ? "success" : "info");
+      }
+      function updateNotificationBadge() {
+        const unread = window.store.notifications.filter((n) => !n.read).length;
+        document.getElementById("notificationBadge").innerText = unread;
+      }
+      function renderNotifications() {
+        const container = document.getElementById("notificationList");
+        container.innerHTML =
+          window.store.notifications
+            .slice(0, 15)
+            .map(
+              (n) =>
+                `<div class="notification-item ${!n.read ? "unread" : ""}" onclick="markNotificationRead('${n.id}')"><div class="notification-title">${n.title}</div><div>${n.message}</div><div class="notification-time">${new Date(n.time).toLocaleTimeString()}</div></div>`,
+            )
+            .join("") || "<div class='empty-state'>No notifications</div>";
+      }
+      window.markNotificationRead = (id) => {
+        const n = window.store.notifications.find((n) => n.id == id);
+        if (n) n.read = true;
+        saveStore();
+        renderNotifications();
+        updateNotificationBadge();
+      };
 
-<script src="../js/api.js"></script>
-<script>
-const user=requireAuth('doctor');
-if(user){
-  const displayName=user.full_name||user.name||'Doctor';
-  $('sb-name').textContent=displayName;
-  $('sb-av').textContent=displayName.replace(/^Dr\s+/,'').split(' ').map(n=>n[0]).join('').toUpperCase().substring(0,2);
-  if(user.contact) $('sb-contact').textContent=user.contact;
-}
-
-function tick(){$('clock').textContent=new Date().toLocaleTimeString('en-ZA');}tick();setInterval(tick,1000);
-
-var SECS={consult:'sec-consult',queue:'sec-queue',prediction:'sec-prediction',contacts:'sec-contacts'};
-var TITLES={consult:'Consultation',queue:'My Queue',prediction:'Prediction Log',contacts:'Doctor Contacts'};
-var METAS={consult:'Manage your active consultation',queue:'Patients waiting for you',prediction:'Wait-time accuracy log',contacts:'Clinic doctor directory'};
-function go(name,evt){
-  evt = evt || window.event;
-  if(evt && evt.preventDefault) evt.preventDefault();
-  Object.keys(SECS).forEach(k=>$(SECS[k]).classList.add('hidden'));
-  $(SECS[name]).classList.remove('hidden');
-  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
-  if(evt && evt.target) evt.target.closest('.nav-item').classList.add('active');
-  $('pg-title').textContent=TITLES[name];$('pg-meta').textContent=METAS[name];
-  if(name==='contacts')renderContacts();
-  refreshDoc();
-  return false;
-}
-
-let timerSecs=0,timerInt=null;
-
-function refreshDoc(){
-  const waiting=SC.queueEntries.filter(q=>q.status==='CheckedIn').sort((a,b)=>a.queue_position-b.queue_position);
-  const done=SC.predictionLogs.filter(p=>p.actual!==null).length;
-  const avg=rollingAvg();
-  $('q-badge').textContent=waiting.length+' waiting';
-  $('st-w').textContent=waiting.length;
-  $('st-d').textContent=done;
-  $('pred-avg').textContent=avg+'m';
-  $('pred-cnt').textContent=SC.consultationDurations.length;
-  const nums=SC.consultationDurations;
-  $('pred-formula').textContent=nums.length===0
-    ?'Avg = default 15 min (no data yet)\nWaiting: '+waiting.length+' patients'
-    :'Avg = ('+nums.join(' + ')+') ÷ '+nums.length+' = '+avg+' min\nWaiting: '+waiting.length+' patients';
-  const beginBtn=$('begin-btn');
-  if(waiting.length>0&&!SC.activeConsultation){
-    beginBtn.disabled=false;
-    $('begin-sub').textContent='Next: '+waiting[0].patient_name+' ('+waiting[0].patient_id+')';
-    $('next-alert').textContent='👋 '+waiting[0].patient_name+' is ready.';
-    $('next-alert').classList.remove('hidden');
-  }else{
-    beginBtn.disabled=true;
-    $('begin-sub').textContent=SC.activeConsultation?'Consultation in progress.':'No patients waiting.';
-    $('next-alert').classList.add('hidden');
-  }
-  // Queue table
-  const tbody=$('dq-tbody');
-  if(!waiting.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:20px">No patients waiting.</td></tr>';}
-  else{tbody.innerHTML=waiting.map((q,i)=>`<tr><td class="qp">#${q.queue_position}</td><td><b>${q.patient_name}</b></td><td><code>${q.patient_id}</code></td><td style="font-size:.78rem;color:var(--text-dim)">${fmtTime(q.checkin_time)}</td><td>${calcWait(i)} min</td><td><span class="badge badge-green">Waiting</span></td></tr>`).join('');}
-  // Prediction log
-  const ptbody=$('pl-tbody');
-  const completed=SC.predictionLogs.filter(p=>p.actual!==null);
-  if(!completed.length){ptbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:14px">No completed consultations yet.</td></tr>';}
-  else{ptbody.innerHTML=completed.map(p=>{
-    const acc=Math.max(0,Math.round(100-Math.abs((p.actual-p.estimated_wait)/Math.max(p.estimated_wait,1)*100)));
-    return`<tr><td><b>${p.patient_name}</b></td><td class="qp">#${p.queue_position}</td><td>${p.estimated_wait} min</td><td>${p.actual} min</td><td><span class="badge badge-${acc>=80?'green':acc>=60?'amber':'red'}">${acc}%</span></td></tr>`;
-  }).join('');}
-}
-
-function beginConsult(){
-  const waiting=SC.queueEntries.filter(q=>q.status==='CheckedIn').sort((a,b)=>a.queue_position-b.queue_position);
-  if(!waiting.length)return;
-  const next=waiting[0];next.status='Consulting';
-  SC.activeConsultation={entry:next,startTime:Date.now()};timerSecs=0;
-  $('no-patient').classList.add('hidden');$('active-panel').classList.remove('hidden');
-  $('doc-pname').textContent=next.patient_name;$('doc-ppid').textContent=next.patient_id;
-  timerInt=setInterval(()=>{
-    timerSecs++;
-    $('doc-timer').textContent=String(Math.floor(timerSecs/60)).padStart(2,'0')+':'+String(timerSecs%60).padStart(2,'0');
-  },1000);
-  refreshDoc();
-}
-function endConsult(){
-  if(!SC.activeConsultation)return;
-  clearInterval(timerInt);
-  const dur=Math.max(1,Math.round(timerSecs/60));
-  SC.consultationDurations.push(dur);
-  SC.activeConsultation.entry.status='Completed';
-  const log=SC.predictionLogs.find(p=>p.patient_id===SC.activeConsultation.entry.patient_id&&p.actual===null);
-  if(log)log.actual=dur;
-  SC.activeConsultation=null;timerSecs=0;
-  $('doc-timer').textContent='00:00';
-  $('no-patient').classList.remove('hidden');$('active-panel').classList.add('hidden');
-  writeSensor('ActiveQueueOccupancy','ConsultationEnd_Auto',null,activeCount());
-  refreshDoc();
-}
-
-function renderContacts(){
-  $('doc-contacts-list').innerHTML=DOCTORS.map(d=>`
-    <div class="doc-contact">
-      <div style="font-size:1.3rem">👨‍⚕️</div>
-      <div style="flex:1">
-        <div style="font-weight:700">${d.name}</div>
-        <div style="font-size:.78rem;color:var(--text-dim)">${d.specialty}</div>
-      </div>
-      <div class="dc-num">📞 ${d.contact}</div>
-    </div>`).join('');
-}
-
-refreshDoc();setInterval(refreshDoc,5000);
-document.addEventListener('sensor2tick',refreshDoc);
-</script>
-</body>
+      function renderAll() {
+        renderProfileUI();
+        renderAppointments();
+        renderConsult();
+        renderAllPrescriptions();
+        renderAnalytics();
+        renderStaff();
+        renderNotifications();
+      }
+      function renderProfileUI() {
+        document.getElementById("docName").innerText =
+          window.currentDoctor.name;
+        document.getElementById("docSpecialty").innerText =
+          window.currentDoctor.specialty;
+        document.getElementById("docPhone").innerText =
+          window.currentDoctor.phone;
+        document.getElementById("docEmail").innerText =
+          window.currentDoctor.email;
+        document.getElementById("docBio").innerText = window.currentDoctor.bio;
+        let av = document.getElementById("docAvatar");
+        if (window.currentDoctor.photoData) {
+          av.style.background = `url(${window.currentDoctor.photoData}) center/cover`;
+          av.innerHTML = "";
+        } else {
+          av.style.background = "";
+          av.innerHTML = "D";
+        }
+        document.getElementById("docShortName").innerText =
+          window.currentDoctor.name;
+        renderMiniCalendar();
+        renderDaySelector();
+        const durations = window.store.consultationDurations;
+        let avg = durations.length
+          ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
+          : 0;
+        document.getElementById("todayStats").innerHTML =
+          `<div><span class="sc-badge-green">Completed: ${durations.length}</span><br/>Avg time: ${avg} min</div>`;
+        const upcoming = window.store.appointments
+          .filter(
+            (a) =>
+              a.doctorName === window.currentDoctor.name &&
+              new Date(a.datetime) > new Date(),
+          )
+          .slice(0, 3);
+        document.getElementById("upcomingPreview").innerHTML = upcoming.length
+          ? upcoming
+              .map(
+                (a) =>
+                  `<div><i class="fas fa-calendar-alt"></i> <strong>${a.patientName}</strong><br/>${new Date(a.datetime).toLocaleString()} · ${a.reason}</div>`,
+              )
+              .join("")
+          : "<div>No upcoming</div>";
+      }
+      function renderAppointments() {
+        const doctorApps = window.store.appointments.filter(
+          (a) => a.doctorName === window.currentDoctor.name,
+        );
+        if (!doctorApps.length) {
+          document.getElementById("appointmentsList").innerHTML =
+            "<div class='empty-state'>No appointments scheduled</div>";
+          return;
+        }
+        document.getElementById("appointmentsList").innerHTML = doctorApps
+          .map(
+            (a) =>
+              `<div class="rx-card"><b>${a.patientName}</b> | ${new Date(a.datetime).toLocaleString()}<br/><small>${a.reason}</small> <span class="sc-badge-green">${a.status}</span></div>`,
+          )
+          .join("");
+      }
+      function renderConsult() {
+        const myHandoffs = window.store.doctorQueue.filter(
+          (q) => q.assigned_doctor_id === window.currentDoctor.id,
+        );
+        document.getElementById("queuePreview").innerHTML = myHandoffs.length
+          ? myHandoffs
+              .map(
+                (q) =>
+                  `<div class="rx-card" style="display:flex; justify-content:space-between; align-items:center;"><div><i class="fas fa-user-nurse"></i> <strong>${q.patient_name}</strong><br/><small>Vitals: ${q.vitals_summary || "--"}<br/>Notes: ${q.nurse_notes || "--"}</small></div><button class="btn-sm" onclick="acceptHandoff('${q.id}')">Accept Consult</button></div>`,
+              )
+              .join("")
+          : "<div class='empty-state'>No patients waiting from nurse</div>";
+        document.getElementById("waitMessage").innerHTML = myHandoffs.length
+          ? `${myHandoffs.length} patient(s) ready for doctor`
+          : "Queue empty";
+        if (!window.activeConsult) {
+          document.getElementById("consultActive").innerHTML =
+            "<div class='empty-state'>No active consultation. Click 'Accept Consult' on a patient from the queue above.</div>";
+          document.getElementById("consultRxSection").style.display = "none";
+        } else {
+          document.getElementById("consultActive").innerHTML =
+            `<div style="background:rgba(0,158,120,0.1); border-radius:28px; padding:20px;"><strong><i class="fas fa-user"></i> ${window.activeConsult.patient_name}</strong><div style="font-size:0.8rem;">ID: ${window.activeConsult.patient_id}</div><div><small>Nurse Vitals: ${window.activeConsult.vitals_summary || "--"}</small></div><div class="timer-display" id="consultTimer">00:00</div><button class="btn-sm" onclick="endConsult()" style="width:100%; background:var(--sc-red);"><i class="fas fa-stop"></i> End Consultation</button></div>`;
+          document.getElementById("consultRxSection").style.display = "block";
+          document.getElementById("currentConsultPatient").innerText =
+            window.activeConsult.patient_name;
+          if (window.consultTimer) clearInterval(window.consultTimer);
+          window.consultSecs = 0;
+          window.consultTimer = setInterval(() => {
+            window.consultSecs++;
+            let d = document.getElementById("consultTimer");
+            if (d)
+              d.innerText = `${Math.floor(window.consultSecs / 60)
+                .toString()
+                .padStart(
+                  2,
+                  "0",
+                )}:${(window.consultSecs % 60).toString().padStart(2, "0")}`;
+          }, 1000);
+        }
+      }
+      window.acceptHandoff = (handoffId) => {
+        const handoff = window.store.doctorQueue.find((q) => q.id == handoffId);
+        if (!handoff) return;
+        if (window.activeConsult) {
+          showToast("Please end current consultation first", "error");
+          return;
+        }
+        window.activeConsult = {
+          ...handoff,
+          status: "active",
+          startedAt: new Date().toISOString(),
+        };
+        window.store.doctorQueue = window.store.doctorQueue.filter(
+          (q) => q.id != handoffId,
+        );
+        window.store.doctorActiveConsults.push(window.activeConsult);
+        saveStore();
+        renderConsult();
+        addNotification(
+          "Consultation Started",
+          "Started consultation with " + handoff.patient_name,
+          "success",
+        );
+      };
+      window.beginConsult = () => {
+        const myHandoffs = window.store.doctorQueue.filter(
+          (q) => q.assigned_doctor_id === window.currentDoctor.id,
+        );
+        if (myHandoffs.length && !window.activeConsult)
+          showToast(
+            "Select a patient from the queue above and click 'Accept Consult' to begin",
+            "info",
+          );
+        else if (!myHandoffs.length)
+          showToast(
+            "No patients in queue. Nurse will hand over patients after checkups.",
+            "info",
+          );
+        else if (window.activeConsult)
+          showToast(
+            "You already have an active consultation. End it first.",
+            "error",
+          );
+      };
+      window.issuePrescriptionForCurrentPatient = () => {
+        if (!window.activeConsult) {
+          showToast("No active patient. Start a consultation first.", "error");
+          return;
+        }
+        let med = document.getElementById("consultRxMed").value.trim();
+        if (!med) {
+          showToast("Please enter medication name", "error");
+          return;
+        }
+        let dosage =
+          document.getElementById("consultRxDosage").value.trim() ||
+          "As directed";
+        let notes =
+          document.getElementById("consultRxNotes").value.trim() ||
+          "General consultation";
+        const newRx = {
+          id: "RX" + Date.now(),
+          date: new Date().toISOString().split("T")[0],
+          patientId: window.activeConsult.patient_id,
+          patientName: window.activeConsult.patient_name,
+          doctorId: window.currentDoctor.id,
+          doctorName: window.currentDoctor.name,
+          medication: med,
+          dosage: dosage,
+          diagnosis: notes,
+          status: "active",
+        };
+        window.store.prescriptions.push(newRx);
+        document.getElementById("consultRxMed").value = "";
+        document.getElementById("consultRxDosage").value = "";
+        document.getElementById("consultRxNotes").value = "";
+        saveStore();
+        renderAllPrescriptions();
+        addNotification(
+          "Prescription Issued",
+          "Prescription issued for " + window.activeConsult.patient_name,
+          "success",
+        );
+      };
+      window.endConsult = () => {
+        if (!window.activeConsult) return;
+        clearInterval(window.consultTimer);
+        let dur = Math.max(1, Math.round((window.consultSecs || 0) / 60));
+        window.store.consultationDurations.push(dur);
+        window.store.doctorActiveConsults =
+          window.store.doctorActiveConsults.filter(
+            (c) => c.id !== window.activeConsult.id,
+          );
+        addNotification(
+          "Consultation Completed",
+          "Consultation with " +
+            window.activeConsult.patient_name +
+            " completed (" +
+            dur +
+            " min)",
+          "success",
+        );
+        window.activeConsult = null;
+        renderConsult();
+        renderAnalytics();
+        saveStore();
+      };
+      function renderAllPrescriptions() {
+        const search =
+          document.getElementById("searchPatientRx")?.value.toLowerCase() || "";
+        const filtered = window.store.prescriptions.filter((rx) =>
+          (rx.patientName || "").toLowerCase().includes(search),
+        );
+        const container = document.getElementById("allPrescriptionsList");
+        if (!filtered.length) {
+          container.innerHTML =
+            "<div class='empty-state'>No prescriptions found</div>";
+          return;
+        }
+        container.innerHTML = filtered
+          .map(
+            (rx) =>
+              `<div class="rx-card"><div class="rx-patient-name">${rx.patientName}</div><div><i class="fas fa-pills"></i> ${rx.medication} · ${rx.dosage}</div><div style="font-size:0.75rem;"><i class="fas fa-notes-medical"></i> ${rx.diagnosis}</div><div style="font-size:0.65rem;"><i class="fas fa-user-md"></i> ${rx.doctorName} · ${rx.date}</div></div>`,
+          )
+          .join("");
+      }
+      window.filterPrescriptions = () => renderAllPrescriptions();
+      function renderAnalytics() {
+        const durations = window.store.consultationDurations;
+        let avg = durations.length
+          ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
+          : 15;
+        document.getElementById("analyticsStats").innerHTML =
+          `<div style="background:rgba(0,0,0,0.2); border-radius:24px; padding:20px; text-align:center;"><div style="font-size:2rem;">${avg}m</div><div>Rolling Avg</div></div><div style="background:rgba(0,0,0,0.2); border-radius:24px; padding:20px; text-align:center;"><div style="font-size:2rem;">${durations.length}</div><div>Total Consults</div></div>`;
+        document.getElementById("predictionTable").innerHTML =
+          "<div class='empty-state'>Prediction data will appear after more consultations</div>";
+      }
+      function renderStaff() {
+        document.getElementById("staffList").innerHTML =
+          `<div class="rx-card"><strong><i class="fas fa-user-md"></i> Doctors</strong><br/>${window.store.doctors.map((d) => `${d.name} - ${d.specialty} · ${d.phone}`).join("<br/>")}</div><div class="rx-card"><strong><i class="fas fa-user-nurse"></i> Nurses</strong><br/>${window.store.nurses.map((n) => `${n.name} · ${n.phone}`).join("<br/>")}</div>`;
+      }
+      function renderMiniCalendar() {
+        let container = document.getElementById("miniCalendarDays");
+        let today = new Date();
+        let firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        let startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+        let daysInMonth = new Date(
+          today.getFullYear(),
+          today.getMonth() + 1,
+          0,
+        ).getDate();
+        let grid = [];
+        for (let i = 0; i < startDay; i++) grid.push("<div></div>");
+        for (let d = 1; d <= daysInMonth; d++) {
+          let weekdayName = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            d,
+          ).toLocaleDateString("en-ZA", { weekday: "long" });
+          let hasSlot =
+            window.currentDoctor.availability[weekdayName]?.length > 0;
+          grid.push(
+            `<div class="cal-day ${hasSlot ? "available" : ""}">${d}</div>`,
+          );
+        }
+        container.innerHTML = grid.join("");
+      }
+      function renderDaySelector() {
+        let select = document.getElementById("daySelector");
+        let days = Object.keys(window.currentDoctor.availability);
+        select.innerHTML = days
+          .map((d) => `<option value="${d}">${d}</option>`)
+          .join("");
+        if (days.length) updateDaySlots(days[0]);
+      }
+      function updateDaySlots(day) {
+        document.getElementById("daySlotsList").innerHTML = (
+          window.currentDoctor.availability[day] || []
+        )
+          .map(
+            (s) =>
+              `<span class="time-slot">${s} <i class="fas fa-trash-alt" style="cursor:pointer; margin-left:8px;" onclick="removeSlotFromDay('${day}','${s}')"></i></span>`,
+          )
+          .join("");
+      }
+      window.addTimeSlotToDay = () => {
+        let day = document.getElementById("daySelector").value,
+          nt = document.getElementById("newSlotTime").value;
+        if (!nt) return;
+        if (!window.currentDoctor.availability[day])
+          window.currentDoctor.availability[day] = [];
+        if (!window.currentDoctor.availability[day].includes(nt))
+          window.currentDoctor.availability[day].push(nt);
+        window.currentDoctor.availability[day].sort();
+        updateDaySlots(day);
+        renderMiniCalendar();
+        showToast("Slot added", "success");
+        saveStore();
+      };
+      window.removeSlotFromDay = (day, slot) => {
+        if (window.currentDoctor.availability[day])
+          window.currentDoctor.availability[day] =
+            window.currentDoctor.availability[day].filter((s) => s !== slot);
+        updateDaySlots(day);
+        renderMiniCalendar();
+        saveStore();
+      };
+      function saveAvailability() {
+        saveStore();
+        showToast("Availability saved", "success");
+      }
+      function toggleCalendar() {
+        let c = document.getElementById("calendarContent"),
+          ic = document.getElementById("calendarToggleIcon");
+        if (c.style.display === "none") {
+          c.style.display = "block";
+          ic.className = "fas fa-chevron-up";
+        } else {
+          c.style.display = "none";
+          ic.className = "fas fa-chevron-down";
+        }
+      }
+      function triggerPhotoUpload() {
+        document.getElementById("photoUpload").click();
+      }
+      document
+        .getElementById("photoUpload")
+        ?.addEventListener("change", (e) => {
+          let file = e.target.files[0];
+          if (file && file.type.startsWith("image/")) {
+            let reader = new FileReader();
+            reader.onload = (ev) => {
+              window.currentDoctor.photoData = ev.target.result;
+              renderProfileUI();
+              saveStore();
+              addNotification(
+                "Photo Updated",
+                "Profile photo updated",
+                "success",
+              );
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      document
+        .getElementById("enableProfileEditBtn")
+        ?.addEventListener("click", () => {
+          document.getElementById("profileViewMode").style.display = "none";
+          document.getElementById("profileEditForm").style.display = "block";
+          document.getElementById("editName").value = window.currentDoctor.name;
+          document.getElementById("editSpecialty").value =
+            window.currentDoctor.specialty;
+          document.getElementById("editPhone").value =
+            window.currentDoctor.phone;
+          document.getElementById("editEmail").value =
+            window.currentDoctor.email;
+          document.getElementById("editBio").value = window.currentDoctor.bio;
+        });
+      document
+        .getElementById("cancelEditBtn")
+        ?.addEventListener("click", () => {
+          document.getElementById("profileViewMode").style.display = "block";
+          document.getElementById("profileEditForm").style.display = "none";
+        });
+      document
+        .getElementById("saveProfileBtn")
+        ?.addEventListener("click", () => {
+          window.currentDoctor.name = document.getElementById("editName").value;
+          window.currentDoctor.specialty =
+            document.getElementById("editSpecialty").value;
+          window.currentDoctor.phone =
+            document.getElementById("editPhone").value;
+          window.currentDoctor.email =
+            document.getElementById("editEmail").value;
+          window.currentDoctor.bio = document.getElementById("editBio").value;
+          const avatarFile = document.getElementById("editAvatar").files[0];
+          if (avatarFile) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              window.currentDoctor.photoData = e.target.result;
+              renderProfileUI();
+              saveStore();
+            };
+            reader.readAsDataURL(avatarFile);
+          }
+          renderProfileUI();
+          document.getElementById("profileViewMode").style.display = "block";
+          document.getElementById("profileEditForm").style.display = "none";
+          saveStore();
+          addNotification(
+            "Profile Updated",
+            "Your profile has been updated successfully",
+            "success",
+          );
+        });
+      function updateClock() {
+        document.getElementById("liveClock").innerText =
+          new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+      }
+      setInterval(updateClock, 1000);
+      updateClock();
+      document.getElementById("logoutBtn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        showLogoutConfirm();
+      });
+      document
+        .getElementById("notificationBell")
+        ?.addEventListener("click", (e) => {
+          e.stopPropagation();
+          document.getElementById("notificationPanel").classList.toggle("show");
+        });
+      document.addEventListener("click", () => {
+        document.getElementById("notificationPanel").classList.remove("show");
+      });
+      document.querySelectorAll(".nav-item").forEach((li) =>
+        li.addEventListener("click", () => {
+          let tab = li.getAttribute("data-tab");
+          document
+            .querySelectorAll(".tab-panel")
+            .forEach((p) => p.classList.remove("active"));
+          document.getElementById(`${tab}Panel`).classList.add("active");
+          document
+            .querySelectorAll(".nav-item")
+            .forEach((b) => b.classList.remove("active"));
+          li.classList.add("active");
+          if (tab === "appointments") renderAppointments();
+          if (tab === "consult") renderConsult();
+          if (tab === "prescriptions") renderAllPrescriptions();
+          if (tab === "analytics") renderAnalytics();
+          if (tab === "contacts") renderStaff();
+        }),
+      );
+      loadStore();
+      renderAll();
+      updateNotificationBadge();
+      renderNotifications();
+      window.addEventListener("storage", (e) => {
+        if (e.key === STORAGE_KEY && e.newValue) {
+          window.store = JSON.parse(e.newValue);
+          window.currentDoctor = window.store.doctors[0];
+          window.activeConsult =
+            window.store.doctorActiveConsults?.find(
+              (c) => c.status === "active",
+            ) || null;
+          renderAll();
+        }
+      });
+    </script>
+  </body>
 </html>

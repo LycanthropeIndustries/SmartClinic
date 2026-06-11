@@ -1,5 +1,5 @@
 // models/index.js — all models using exact Supabase column names
-const db = require('../config/supabase');
+const db = require('../config/supabase.js');
 
 // ─────────────────────────────────────────────
 // USERS
@@ -31,6 +31,33 @@ const Users = {
     if (error) throw error;
     return data;
   },
+  create: async (data) => {
+    const { data: row, error } = await db
+      .from('users')
+      .insert([data])
+      .select('user_id, full_name, email, role, is_active, created_at')
+      .single();
+    if (error) throw error;
+    return row;
+  },
+  update: async (user_id, updates) => {
+    const { data, error } = await db
+      .from('users')
+      .update(updates)
+      .eq('user_id', user_id)
+      .select('user_id, full_name, email, role, is_active, created_at')
+      .single();
+    if (error) throw error;
+    return data;
+  },
+  delete: async (user_id) => {
+    const { error } = await db
+      .from('users')
+      .delete()
+      .eq('user_id', user_id);
+    if (error) throw error;
+    return { message: 'User deleted' };
+  },
 };
 
 // ─────────────────────────────────────────────
@@ -45,6 +72,16 @@ const Patients = {
       .single();
     if (error) throw error;
     return row;
+  },
+  getLatestPatientId: async () => {
+    const { data, error } = await db
+      .from('patients')
+      .select('patient_id')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+    if (error && error.code !== 'PGRST116') throw error;
+    return data ? data.patient_id : null;
   },
   getAll: async () => {
     const { data, error } = await db
@@ -170,6 +207,16 @@ const Appointments = {
       .from('appointments')
       .select(`*, patients(full_name), doctors(name, contact)`)
       .eq('appointment_id', appointment_id)
+      .single();
+    if (error) throw error;
+    return data;
+  },
+  update: async (appointment_id, updates) => {
+    const { data, error } = await db
+      .from('appointments')
+      .update(updates)
+      .eq('appointment_id', appointment_id)
+      .select(`*, patients(full_name), doctors(name, contact)`)
       .single();
     if (error) throw error;
     return data;

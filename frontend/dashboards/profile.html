@@ -1,0 +1,962 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=yes"
+    />
+    <title>SmartClinic · MyHealth Profile</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      :root {
+        --primary: #0f8b6b;
+        --primary-dark: #0b6e55;
+        --primary-light: #b9f3e3;
+        --bg-deep: #0a2c2f;
+        --surface: rgba(255, 255, 255, 0.06);
+        --surface-hover: rgba(255, 255, 255, 0.1);
+        --border-light: rgba(255, 255, 255, 0.1);
+        --text-dim: rgba(255, 255, 255, 0.6);
+        --text-soft: rgba(255, 255, 255, 0.85);
+        --amber: #fbbf24;
+        --rose: #f87171;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--bg-deep);
+        color: #fff;
+        line-height: 1.5;
+      }
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 28px 24px 48px;
+      }
+      .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 32px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border-light);
+      }
+      .logo-area {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .logo-icon {
+        width: 42px;
+        height: 42px;
+        background: var(--primary);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+      }
+      .logo-icon i {
+        font-size: 22px;
+        color: white;
+      }
+      .logo-area h1 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #fff, var(--primary-light));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .nav-list {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        background: rgba(10, 44, 47, 0.7);
+        backdrop-filter: blur(8px);
+        border-radius: 48px;
+        padding: 6px;
+        border: 1px solid var(--border-light);
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 20px;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        background: transparent;
+        color: var(--text-dim);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        font-family: "Inter", sans-serif;
+      }
+      .nav-item i {
+        font-size: 1rem;
+        width: 20px;
+      }
+      .nav-item.active {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 4px 10px rgba(15, 139, 107, 0.3);
+      }
+      .nav-item:hover:not(.active) {
+        background: var(--surface-hover);
+        color: white;
+      }
+      .glass-card {
+        background: var(--surface);
+        backdrop-filter: blur(2px);
+        border: 1px solid var(--border-light);
+        border-radius: 32px;
+        padding: 28px;
+        margin-bottom: 28px;
+      }
+      .profile-flex {
+        display: flex;
+        gap: 36px;
+        flex-wrap: wrap;
+      }
+      .avatar-section {
+        text-align: center;
+        min-width: 180px;
+      }
+      .avatar-circle {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(145deg, var(--primary), #065a46);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        font-weight: 600;
+        margin: 0 auto 16px;
+        border: 3px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        background-size: cover;
+        background-position: center;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .avatar-circle:hover {
+        opacity: 0.85;
+        transform: scale(1.02);
+      }
+      .edit-photo-btn {
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 40px;
+        padding: 5px 12px;
+        font-size: 0.7rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        margin-top: 6px;
+        border: 1px solid var(--primary-light);
+      }
+      .qr-modern {
+        background: white;
+        border-radius: 20px;
+        padding: 10px;
+        width: 130px;
+        margin: 16px auto 0;
+      }
+      .qr-modern canvas,
+      .qr-modern img {
+        width: 100% !important;
+        height: auto !important;
+        border-radius: 12px;
+      }
+      .info-grid-modern {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 18px;
+        flex: 1;
+      }
+      .info-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 16px 18px;
+        transition: 0.2s;
+      }
+      .info-card .label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-dim);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .info-card .value {
+        font-size: 1rem;
+        font-weight: 600;
+        word-break: break-word;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .edit-icon {
+        background: none;
+        border: none;
+        color: var(--primary-light);
+        cursor: pointer;
+        font-size: 0.85rem;
+        padding: 6px;
+        border-radius: 40px;
+        transition: 0.2s;
+      }
+      .edit-icon:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: scale(1.05);
+      }
+      .inline-editor {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        width: 100%;
+        flex-wrap: wrap;
+      }
+      .inline-input {
+        background: rgba(0, 0, 0, 0.6);
+        border: 1px solid var(--primary);
+        border-radius: 40px;
+        padding: 8px 14px;
+        color: white;
+        font-family: monospace;
+        flex: 1;
+        min-width: 140px;
+      }
+      .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+      }
+      .stat-modern {
+        background: var(--surface);
+        border-radius: 24px;
+        padding: 18px;
+        text-align: center;
+        border: 1px solid var(--border-light);
+      }
+      .stat-number {
+        font-size: 2.3rem;
+        font-weight: 800;
+        color: var(--primary-light);
+      }
+      .list-modern {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .appointment-row,
+      .med-row,
+      .prescription-card {
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 20px;
+        padding: 18px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 14px;
+        border-left: 4px solid var(--primary);
+      }
+      .badge {
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-size: 0.7rem;
+        font-weight: 600;
+      }
+      .badge-upcoming {
+        background: rgba(15, 139, 107, 0.25);
+        color: #a7f3d0;
+      }
+      .badge-completed {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ccc;
+      }
+      .filter-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .filter-chip {
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 32px;
+        padding: 6px 18px;
+        font-size: 0.8rem;
+        cursor: pointer;
+      }
+      .filter-chip.active {
+        background: var(--primary);
+        color: white;
+      }
+      .btn-submit {
+        background: var(--primary);
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 60px;
+        font-weight: 700;
+        color: white;
+        cursor: pointer;
+        transition: 0.2s;
+        margin-top: 10px;
+      }
+      .form-modern input,
+      .form-modern select,
+      .form-modern textarea {
+        width: 100%;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--border-light);
+        border-radius: 20px;
+        padding: 12px 16px;
+        color: white;
+        font-family: inherit;
+      }
+      .msg {
+        padding: 12px 20px;
+        border-radius: 60px;
+        margin-bottom: 20px;
+        display: none;
+      }
+      .msg.show {
+        display: block;
+      }
+      .msg-success {
+        background: #0f8b6b30;
+        border-left: 4px solid var(--primary);
+        color: #ccfbf1;
+      }
+      .msg-error {
+        background: #f8717130;
+        border-left: 4px solid var(--rose);
+      }
+      @media (max-width: 700px) {
+        .container {
+          padding: 18px;
+        }
+        .nav-item span {
+          display: none;
+        }
+        .nav-item i {
+          margin: 0;
+          font-size: 1.3rem;
+        }
+        .nav-item {
+          padding: 10px 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="top-bar">
+        <div class="logo-area">
+          <div class="logo-icon"><i class="fas fa-stethoscope"></i></div>
+          <h1>SmartClinic · MyHealth</h1>
+        </div>
+        <div class="nav-list" id="navList">
+          <div class="nav-item active" data-section="profile">
+            <i class="fas fa-user-circle"></i><span> Profile</span>
+          </div>
+          <div class="nav-item" data-section="appointments">
+            <i class="fas fa-calendar-alt"></i><span> Appointments</span>
+          </div>
+          <div class="nav-item" data-section="medications">
+            <i class="fas fa-pills"></i><span> Medications</span>
+          </div>
+          <div class="nav-item" data-section="prescriptions">
+            <i class="fas fa-file-prescription"></i><span> Prescriptions</span>
+          </div>
+          <div class="nav-item" data-section="booking">
+            <i class="fas fa-plus-circle"></i><span> Book visit</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Panel -->
+      <div id="profilePanel" class="tab-panel" style="display: block">
+        <div class="glass-card">
+          <div class="profile-flex">
+            <div class="avatar-section">
+              <div
+                class="avatar-circle"
+                id="profileAvatar"
+                style="background-size: cover; background-position: center"
+              ></div>
+              <div class="edit-photo-btn" id="editPhotoTrigger">
+                <i class="fas fa-camera"></i> Change photo
+              </div>
+              <input
+                type="file"
+                id="photoUploadInput"
+                accept="image/*"
+                style="display: none"
+              />
+              <div
+                class="patient-name"
+                id="profileName"
+                style="font-weight: 700; font-size: 1.3rem; margin-top: 12px"
+              ></div>
+              <div
+                class="patient-id"
+                id="profileId"
+                style="
+                  font-size: 0.75rem;
+                  color: var(--text-dim);
+                  margin: 6px 0;
+                "
+              ></div>
+              <div class="qr-modern" id="qrContainer"></div>
+            </div>
+            <div class="info-grid-modern" id="infoGrid"></div>
+          </div>
+        </div>
+        <div class="stats-row" id="statsRow"></div>
+        <div style="text-align: center; margin-top: 12px">
+          <button
+            onclick="loadDemoData()"
+            style="
+              background: rgba(255, 255, 255, 0.1);
+              border: 1px solid rgba(255, 255, 255, 0.2);
+              border-radius: 60px;
+              padding: 8px 20px;
+              color: white;
+              cursor: pointer;
+            "
+          >
+            <i class="fas fa-sync-alt"></i> Load demo data
+          </button>
+        </div>
+      </div>
+
+      <!-- Appointments Panel -->
+      <div id="appointmentsPanel" class="tab-panel" style="display: none">
+        <div class="glass-card">
+          <h3><i class="fas fa-calendar-check"></i> My schedule</h3>
+          <div id="appointmentsList" class="list-modern"></div>
+        </div>
+      </div>
+      <!-- Medications Panel -->
+      <div id="medicationsPanel" class="tab-panel" style="display: none">
+        <div class="glass-card">
+          <h3><i class="fas fa-capsules"></i> Medication list</h3>
+          <div
+            id="medicationsList"
+            class="list-modern"
+            style="margin-top: 20px"
+          ></div>
+        </div>
+      </div>
+      <!-- Prescriptions Panel -->
+      <div id="prescriptionsPanel" class="tab-panel" style="display: none">
+        <div class="glass-card">
+          <div class="filter-tabs" id="rxFilters">
+            <div class="filter-chip active" data-filter="all">All</div>
+            <div class="filter-chip" data-filter="active">Active</div>
+            <div class="filter-chip" data-filter="completed">Completed</div>
+          </div>
+          <div id="prescriptionsList"></div>
+        </div>
+      </div>
+      <!-- Booking Panel -->
+      <div id="bookingPanel" class="tab-panel" style="display: none">
+        <div class="glass-card">
+          <h3><i class="fas fa-calendar-plus"></i> Request appointment</h3>
+          <div id="bookMsg" class="msg"></div>
+          <div
+            class="form-modern"
+            style="display: flex; flex-direction: column; gap: 18px"
+          >
+            <select id="bookDoctor">
+              <option value="">Select doctor</option>
+              <option value="Dr Nkosi">Dr Nkosi - General Practice</option>
+              <option value="Dr Patel">Dr Patel - Pediatrics</option>
+              <option value="Dr Williams">
+                Dr Williams - Internal Medicine
+              </option></select
+            ><input type="datetime-local" id="bookDatetime" /><input
+              type="text"
+              id="bookReason"
+              placeholder="Reason for visit"
+            /><textarea
+              rows="3"
+              id="bookNotes"
+              placeholder="Symptoms / notes"
+            ></textarea
+            ><button class="btn-submit" onclick="handleBooking()">
+              <i class="fas fa-check-circle"></i> Confirm booking
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ---------- DATA MODEL ----------
+      let patientData = null;
+      let appointments = [];
+      let prescriptions = [];
+      let visitsCount = 0;
+      let profilePhotoDataUrl = null; // store base64 avatar
+
+      function saveToLocal() {
+        localStorage.setItem("smart_patient", JSON.stringify(patientData));
+        localStorage.setItem(
+          "smart_appointments",
+          JSON.stringify(appointments),
+        );
+        localStorage.setItem(
+          "smart_prescriptions",
+          JSON.stringify(prescriptions),
+        );
+        localStorage.setItem("smart_visits", visitsCount.toString());
+        if (profilePhotoDataUrl)
+          localStorage.setItem("smart_profile_photo", profilePhotoDataUrl);
+        else localStorage.removeItem("smart_profile_photo");
+      }
+
+      function loadFromLocal() {
+        const p = localStorage.getItem("smart_patient");
+        if (p) patientData = JSON.parse(p);
+        const a = localStorage.getItem("smart_appointments");
+        if (a) appointments = JSON.parse(a);
+        const rx = localStorage.getItem("smart_prescriptions");
+        if (rx) prescriptions = JSON.parse(rx);
+        const v = localStorage.getItem("smart_visits");
+        if (v) visitsCount = parseInt(v) || 0;
+        const photo = localStorage.getItem("smart_profile_photo");
+        if (photo) profilePhotoDataUrl = photo;
+      }
+
+      // demo data with modern fields
+      function loadDemoData() {
+        patientData = {
+          patient_id: "SC-7821",
+          full_name: "Lerato Moloi",
+          id_number: "9502025802086",
+          dob: "1995-02-02",
+          contact: "082 555 1234",
+          email: "lerato.m@smartclinic.co.za",
+          created_at: new Date().toISOString(),
+        };
+        appointments = [
+          {
+            id: "APT101",
+            doctor: "Dr Nkosi",
+            datetime: new Date(Date.now() + 2 * 86400000).toISOString(),
+            reason: "Annual physical",
+            notes: "",
+            status: "upcoming",
+          },
+          {
+            id: "APT102",
+            doctor: "Dr Patel",
+            datetime: new Date(Date.now() - 5 * 86400000).toISOString(),
+            reason: "Vaccination",
+            notes: "",
+            status: "completed",
+          },
+        ];
+        prescriptions = [
+          {
+            rx_id: "RX-421",
+            doctor: "Dr Nkosi",
+            date: new Date(Date.now() - 10 * 86400000).toISOString(),
+            diagnosis: "Hypertension stage 1",
+            notes: "Monitor BP weekly",
+            items: [
+              {
+                name: "Lisinopril",
+                dosage: "10mg",
+                frequency: "Once daily",
+                duration: "30 days",
+                status: "active",
+              },
+            ],
+          },
+          {
+            rx_id: "RX-422",
+            doctor: "Dr Patel",
+            date: new Date(Date.now() - 60 * 86400000).toISOString(),
+            diagnosis: "Allergic rhinitis",
+            notes: "Use as needed",
+            items: [
+              {
+                name: "Cetirizine",
+                dosage: "10mg",
+                frequency: "Daily",
+                duration: "14 days",
+                status: "done",
+              },
+            ],
+          },
+        ];
+        visitsCount = 4;
+        profilePhotoDataUrl = null;
+        saveToLocal();
+        renderAllPanels();
+        showMessage(
+          "bookMsg",
+          "Demo profile ready! Click ✏️ to edit phone, email or photo.",
+          "success",
+        );
+      }
+
+      // helpers: appointment restrictions
+      function hasUpcomingAppointment() {
+        const now = new Date();
+        return appointments.some(
+          (app) => app.status === "upcoming" && new Date(app.datetime) > now,
+        );
+      }
+      function hasAppointmentOnSameDay(selectedDate) {
+        const targetYMD = new Date(selectedDate).toISOString().slice(0, 10);
+        return appointments.some(
+          (app) =>
+            new Date(app.datetime).toISOString().slice(0, 10) === targetYMD,
+        );
+      }
+      function handleBooking() {
+        if (!patientData) {
+          showMessage("bookMsg", "No profile. Load demo first.", "error");
+          return;
+        }
+        const doctor = document.getElementById("bookDoctor").value;
+        const datetimeRaw = document.getElementById("bookDatetime").value;
+        const reason =
+          document.getElementById("bookReason").value.trim() || "Consultation";
+        const notes = document.getElementById("bookNotes").value.trim();
+        if (!doctor || !datetimeRaw) {
+          showMessage("bookMsg", "Please select doctor and date/time", "error");
+          return;
+        }
+        if (hasUpcomingAppointment()) {
+          showMessage(
+            "bookMsg",
+            "❌ You have an upcoming appointment. You can book again only after it's finished.",
+            "error",
+          );
+          return;
+        }
+        if (hasAppointmentOnSameDay(datetimeRaw)) {
+          showMessage(
+            "bookMsg",
+            "⚠️ You already have an appointment on this day. One per day allowed.",
+            "error",
+          );
+          return;
+        }
+        const newAppt = {
+          id: "APT" + Date.now(),
+          doctor,
+          datetime: datetimeRaw,
+          reason,
+          notes,
+          status: "upcoming",
+        };
+        appointments.push(newAppt);
+        saveToLocal();
+        renderAppointments();
+        showMessage(
+          "bookMsg",
+          `✔️ Booked with ${doctor} on ${new Date(datetimeRaw).toLocaleString()}.`,
+          "success",
+        );
+        document.getElementById("bookDoctor").value = "";
+        document.getElementById("bookDatetime").value = "";
+        document.getElementById("bookReason").value = "";
+        document.getElementById("bookNotes").value = "";
+        renderProfileDetails(); // update stats
+      }
+
+      // ---------- EDITABLE FIELDS (Phone, Email, Photo) ----------
+      function startInlineEdit(fieldKey, currentValue, displayElementId) {
+        const container = document.getElementById(displayElementId);
+        if (!container) return;
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = currentValue || "";
+        input.className = "inline-input";
+        const saveBtn = document.createElement("button");
+        saveBtn.innerHTML = '<i class="fas fa-save"></i>';
+        saveBtn.className = "edit-icon";
+        const cancelBtn = document.createElement("button");
+        cancelBtn.innerHTML = '<i class="fas fa-times"></i>';
+        cancelBtn.className = "edit-icon";
+        const wrapper = document.createElement("div");
+        wrapper.className = "inline-editor";
+        wrapper.appendChild(input);
+        wrapper.appendChild(saveBtn);
+        wrapper.appendChild(cancelBtn);
+        container.innerHTML = "";
+        container.appendChild(wrapper);
+        const finishEdit = (save) => {
+          if (save && input.value.trim() !== "") {
+            if (fieldKey === "contact")
+              patientData.contact = input.value.trim();
+            else if (fieldKey === "email")
+              patientData.email = input.value.trim();
+            saveToLocal();
+            renderProfileDetails();
+            showMessage(
+              "bookingMsg",
+              `${fieldKey === "contact" ? "Phone number" : "Email address"} updated!`,
+              "success",
+            );
+          } else {
+            renderProfileDetails();
+          }
+        };
+        saveBtn.onclick = () => finishEdit(true);
+        cancelBtn.onclick = () => finishEdit(false);
+        input.focus();
+      }
+
+      // Profile photo editor (upload and crop-like)
+      function setupPhotoEditing() {
+        const fileInput = document.getElementById("photoUploadInput");
+        const trigger = document.getElementById("editPhotoTrigger");
+        trigger.onclick = () => fileInput.click();
+        fileInput.onchange = (e) => {
+          const file = e.target.files[0];
+          if (file && file.type.startsWith("image/")) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              profilePhotoDataUrl = ev.target.result;
+              saveToLocal();
+              updateAvatarImage();
+              showMessage(
+                "bookingMsg",
+                "Profile photo updated successfully!",
+                "success",
+              );
+            };
+            reader.readAsDataURL(file);
+          } else {
+            showMessage("bookingMsg", "Please select an image file", "error");
+          }
+          fileInput.value = "";
+        };
+      }
+      function updateAvatarImage() {
+        const avatarDiv = document.getElementById("profileAvatar");
+        if (profilePhotoDataUrl) {
+          avatarDiv.style.backgroundImage = `url(${profilePhotoDataUrl})`;
+          avatarDiv.style.backgroundSize = "cover";
+          avatarDiv.style.backgroundPosition = "center";
+          avatarDiv.innerHTML = "";
+        } else {
+          avatarDiv.style.backgroundImage = "";
+          if (patientData && patientData.full_name)
+            avatarDiv.innerHTML = patientData.full_name.charAt(0).toUpperCase();
+          else avatarDiv.innerHTML = "👤";
+        }
+      }
+
+      function renderProfileDetails() {
+        if (!patientData) {
+          document.getElementById("profileAvatar").innerHTML = "?";
+          document.getElementById("profileName").innerText = "Not registered";
+          document.getElementById("profileId").innerText = "---";
+          document.getElementById("infoGrid").innerHTML =
+            `<div class="info-card">No data</div>`;
+          return;
+        }
+        document.getElementById("profileName").innerText =
+          patientData.full_name;
+        document.getElementById("profileId").innerText = patientData.patient_id;
+        updateAvatarImage();
+        const qrDiv = document.getElementById("qrContainer");
+        qrDiv.innerHTML = "";
+        new QRCode(qrDiv, {
+          text: patientData.patient_id,
+          width: 110,
+          height: 110,
+          colorDark: "#0f8b6b",
+          colorLight: "#ffffff",
+        });
+
+        const infoHtml = `
+      <div class="info-card"><div class="label"><i class="fas fa-user"></i> Full name</div><div class="value">${patientData.full_name}</div></div>
+      <div class="info-card"><div class="label"><i class="fas fa-id-card"></i> SA ID</div><div class="value">${patientData.id_number}</div></div>
+      <div class="info-card"><div class="label"><i class="fas fa-birthday-cake"></i> DOB</div><div class="value">${patientData.dob || "—"}</div></div>
+      <div class="info-card"><div class="label"><i class="fas fa-phone-alt"></i> Contact</div><div class="value" id="phoneDisplayValue">${patientData.contact || "—"} <button class="edit-icon" onclick="startInlineEdit('contact', '${(patientData.contact || "").replace(/'/g, "\\'")}', 'phoneDisplayValue')"><i class="fas fa-pen"></i></button></div></div>
+      <div class="info-card"><div class="label"><i class="fas fa-envelope"></i> Email</div><div class="value" id="emailDisplayValue">${patientData.email || "—"} <button class="edit-icon" onclick="startInlineEdit('email', '${(patientData.email || "").replace(/'/g, "\\'")}', 'emailDisplayValue')"><i class="fas fa-pen"></i></button></div></div>
+      <div class="info-card"><div class="label"><i class="fas fa-calendar-alt"></i> Registered</div><div class="value">${new Date(patientData.created_at).toLocaleDateString()}</div></div>
+    `;
+        document.getElementById("infoGrid").innerHTML = infoHtml;
+
+        const activeMedsCount = prescriptions.reduce(
+          (acc, rx) =>
+            acc + rx.items.filter((i) => i.status === "active").length,
+          0,
+        );
+        document.getElementById("statsRow").innerHTML = `
+      <div class="stat-modern"><div class="stat-number">${appointments.length}</div><div>Total appointments</div></div>
+      <div class="stat-modern"><div class="stat-number">${prescriptions.length}</div><div>Prescriptions</div></div>
+      <div class="stat-modern"><div class="stat-number">${visitsCount}</div><div>Clinic visits</div></div>
+      <div class="stat-modern"><div class="stat-number">${activeMedsCount}</div><div>Active meds</div></div>
+    `;
+      }
+
+      function renderAppointments() {
+        const container = document.getElementById("appointmentsList");
+        if (!appointments.length) {
+          container.innerHTML = `<div style="padding:40px; text-align:center;"><i class="fas fa-calendar-times fa-2x"></i><p>No appointments</p></div>`;
+          return;
+        }
+        container.innerHTML = appointments
+          .map((a) => {
+            const d = new Date(a.datetime);
+            const badgeClass =
+              a.status === "upcoming" ? "badge-upcoming" : "badge-completed";
+            return `<div class="appointment-row"><div><i class="fas fa-user-md"></i> <strong>${a.doctor}</strong><br/><small><i class="far fa-clock"></i> ${d.toLocaleString()}</small><br/><span style="font-size:0.8rem;">📌 ${a.reason}</span></div><span class="badge ${badgeClass}">${a.status}</span></div>`;
+          })
+          .join("");
+      }
+
+      function renderMedications() {
+        const allMeds = [];
+        prescriptions.forEach((rx) => {
+          rx.items.forEach((item) =>
+            allMeds.push({
+              ...item,
+              doctor: rx.doctor,
+              date: rx.date,
+              diagnosis: rx.diagnosis,
+            }),
+          );
+        });
+        const container = document.getElementById("medicationsList");
+        if (!allMeds.length) {
+          container.innerHTML = `<div class="empty-state">No medications</div>`;
+          return;
+        }
+        container.innerHTML = allMeds
+          .map(
+            (m) =>
+              `<div class="med-row"><div><i class="fas fa-capsules"></i> <strong>${m.name}</strong> (${m.dosage})<br/><small>${m.frequency} · ${m.duration} · Dr. ${m.doctor}</small></div><span class="badge ${m.status === "active" ? "badge-upcoming" : "badge-completed"}">${m.status}</span></div>`,
+          )
+          .join("");
+      }
+
+      let rxFilter = "all";
+      function renderPrescriptions() {
+        let filtered = [...prescriptions];
+        if (rxFilter === "active")
+          filtered = filtered.filter((rx) =>
+            rx.items.some((i) => i.status === "active"),
+          );
+        if (rxFilter === "completed")
+          filtered = filtered.filter((rx) =>
+            rx.items.every((i) => i.status === "done"),
+          );
+        const container = document.getElementById("prescriptionsList");
+        if (!filtered.length) {
+          container.innerHTML = `<div class="empty-state">No prescriptions</div>`;
+          return;
+        }
+        container.innerHTML = filtered
+          .map(
+            (rx) =>
+              `<div class="prescription-card"><div style="display:flex; justify-content:space-between;"><span><i class="fas fa-receipt"></i> ${rx.rx_id}</span><span>${new Date(rx.date).toLocaleDateString()}</span></div><div><strong>${rx.diagnosis}</strong> · ${rx.doctor}</div>${rx.notes ? `<div style="font-size:0.8rem; opacity:0.7;"><i class="fas fa-comment"></i> ${rx.notes}</div>` : ""}${rx.items.map((it) => `<div style="margin-top: 10px; display:flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.1); padding-top:8px;"><span>💊 ${it.name} (${it.dosage})<br/><small>${it.frequency}</small></span><span class="badge ${it.status === "active" ? "badge-upcoming" : "badge-completed"}">${it.status}</span></div>`).join("")}</div>`,
+          )
+          .join("");
+      }
+
+      function renderAllPanels() {
+        renderProfileDetails();
+        renderAppointments();
+        renderMedications();
+        renderPrescriptions();
+      }
+
+      function switchPanel(panelId) {
+        document
+          .querySelectorAll(".tab-panel")
+          .forEach((p) => (p.style.display = "none"));
+        document.getElementById(panelId).style.display = "block";
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((btn) => btn.classList.remove("active"));
+        const activeNav = Array.from(
+          document.querySelectorAll(".nav-item"),
+        ).find(
+          (n) =>
+            n.getAttribute("data-section") === panelId.replace("Panel", ""),
+        );
+        if (activeNav) activeNav.classList.add("active");
+        if (panelId === "profilePanel") renderProfileDetails();
+        if (panelId === "appointmentsPanel") renderAppointments();
+        if (panelId === "medicationsPanel") renderMedications();
+        if (panelId === "prescriptionsPanel") renderPrescriptions();
+      }
+
+      function showMessage(containerId, text, type) {
+        const msgDiv = document.getElementById(containerId);
+        if (!msgDiv) return;
+        msgDiv.className = `msg msg-${type} show`;
+        msgDiv.innerHTML = `<i class="fas ${type === "success" ? "fa-check-circle" : "fa-exclamation-triangle"}"></i> ${text}`;
+        setTimeout(() => msgDiv.classList.remove("show"), 4000);
+      }
+
+      // event binding & filters
+      document.querySelectorAll(".nav-item").forEach((el) => {
+        el.addEventListener("click", () => {
+          const section = el.getAttribute("data-section");
+          if (section === "profile") switchPanel("profilePanel");
+          if (section === "appointments") switchPanel("appointmentsPanel");
+          if (section === "medications") switchPanel("medicationsPanel");
+          if (section === "prescriptions") switchPanel("prescriptionsPanel");
+          if (section === "booking") switchPanel("bookingPanel");
+        });
+      });
+      document.querySelectorAll(".filter-chip").forEach((chip) => {
+        chip.addEventListener("click", (e) => {
+          document
+            .querySelectorAll(".filter-chip")
+            .forEach((c) => c.classList.remove("active"));
+          chip.classList.add("active");
+          rxFilter = chip.getAttribute("data-filter");
+          renderPrescriptions();
+        });
+      });
+      function init() {
+        loadFromLocal();
+        if (!patientData) loadDemoData();
+        else renderAllPanels();
+        setupPhotoEditing();
+        renderAllPanels();
+        switchPanel("profilePanel");
+      }
+      init();
+      window.startInlineEdit = startInlineEdit;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1432 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>SmartClinic — Doctor</title>
+    <link rel="stylesheet" href="../css/shared.css" />
+    <style>
+      .timer-big {
+        font-family: var(--mono);
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: var(--green);
+        text-align: center;
+        line-height: 1;
+        padding: 14px 0;
+      }
+      .patient-hero {
+        background: rgba(0, 200, 150, 0.08);
+        border: 1px solid rgba(0, 200, 150, 0.2);
+        border-radius: 14px;
+        padding: 18px;
+        text-align: center;
+        margin-bottom: 14px;
+      }
+      .patient-hero .pn {
+        font-size: 1.3rem;
+        font-weight: 700;
+      }
+      .patient-hero .pp {
+        font-family: var(--mono);
+        color: var(--green);
+        font-size: 0.85rem;
+        margin-top: 3px;
+      }
+      .formula-box {
+        background: rgba(0, 200, 150, 0.05);
+        border: 1px dashed rgba(0, 200, 150, 0.25);
+        border-radius: 10px;
+        padding: 13px;
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        color: var(--green);
+        white-space: pre-wrap;
+        line-height: 1.7;
+      }
+      .qp {
+        font-family: var(--mono);
+        font-weight: 700;
+        color: var(--green);
+      }
+      .doc-contact {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 14px;
+        font-size: 0.82rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+      .doc-contact .dc-num {
+        font-family: var(--mono);
+        color: var(--green);
+        font-size: 0.8rem;
+      }
+
+      /* ===== PRESCRIPTION STYLES ===== */
+      .rx-section {
+        background: rgba(0, 200, 150, 0.04);
+        border: 1px solid rgba(0, 200, 150, 0.15);
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 14px;
+      }
+      .rx-section-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--green);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .rx-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1.5fr auto;
+        gap: 8px;
+        align-items: end;
+        margin-bottom: 8px;
+      }
+      .rx-row input,
+      .rx-row select {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 10px;
+        color: var(--text);
+        font-size: 0.82rem;
+        outline: none;
+        transition: border 0.2s;
+      }
+      .rx-row input:focus,
+      .rx-row select:focus {
+        border-color: var(--green);
+      }
+      .rx-row input::placeholder {
+        color: var(--text-dim);
+      }
+      .rx-drug {
+        width: 100%;
+      }
+      .rx-qty {
+        width: 100%;
+      }
+      .rx-unit {
+        width: 100%;
+      }
+      .rx-instr {
+        width: 100%;
+      }
+      .rx-del-btn {
+        background: rgba(255, 80, 80, 0.1);
+        border: 1px solid rgba(255, 80, 80, 0.3);
+        color: #ff6b6b;
+        border-radius: 8px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: all 0.2s;
+      }
+      .rx-del-btn:hover {
+        background: rgba(255, 80, 80, 0.2);
+      }
+      .rx-add-btn {
+        background: rgba(0, 200, 150, 0.1);
+        border: 1px dashed rgba(0, 200, 150, 0.4);
+        color: var(--green);
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-size: 0.78rem;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 4px;
+        transition: all 0.2s;
+      }
+      .rx-add-btn:hover {
+        background: rgba(0, 200, 150, 0.18);
+      }
+      .rx-list {
+        margin-top: 10px;
+      }
+      .rx-item {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.82rem;
+      }
+      .rx-item .rx-num {
+        background: var(--green);
+        color: #000;
+        font-weight: 700;
+        font-size: 0.7rem;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .rx-item .rx-body {
+        flex: 1;
+      }
+      .rx-item .rx-name {
+        font-weight: 700;
+        color: var(--text);
+      }
+      .rx-item .rx-detail {
+        color: var(--text-dim);
+        font-size: 0.75rem;
+        margin-top: 2px;
+      }
+      .rx-item .rx-remove {
+        color: var(--text-dim);
+        cursor: pointer;
+        font-size: 1rem;
+        transition: color 0.2s;
+      }
+      .rx-item .rx-remove:hover {
+        color: #ff6b6b;
+      }
+
+      .rx-textarea {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        color: var(--text);
+        font-size: 0.82rem;
+        resize: vertical;
+        min-height: 60px;
+        outline: none;
+        font-family: inherit;
+      }
+      .rx-textarea:focus {
+        border-color: var(--green);
+      }
+
+      .rx-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .rx-actions .btn {
+        flex: 1;
+      }
+
+      .rx-history-item {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin-bottom: 8px;
+      }
+      .rx-history-item .rx-h-date {
+        font-size: 0.72rem;
+        color: var(--green);
+        font-family: var(--mono);
+        margin-bottom: 4px;
+      }
+      .rx-history-item .rx-h-patient {
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-bottom: 6px;
+      }
+      .rx-history-item .rx-h-meds {
+        font-size: 0.78rem;
+        color: var(--text-dim);
+        line-height: 1.6;
+      }
+      .rx-history-item .rx-h-meds span {
+        display: inline-block;
+        background: rgba(0, 200, 150, 0.1);
+        border: 1px solid rgba(0, 200, 150, 0.2);
+        border-radius: 6px;
+        padding: 2px 8px;
+        margin: 2px 4px 2px 0;
+        font-size: 0.72rem;
+        color: var(--green);
+      }
+
+      .print-rx {
+        background: #fff;
+        color: #000;
+        padding: 24px;
+        border-radius: 12px;
+        max-width: 420px;
+        margin: 0 auto;
+      }
+      .print-rx h3 {
+        margin: 0 0 4px;
+        font-size: 1.1rem;
+      }
+      .print-rx .print-meta {
+        font-size: 0.75rem;
+        color: #666;
+        margin-bottom: 16px;
+      }
+      .print-rx .print-patient {
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #000;
+      }
+      .print-rx .print-rx-label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #666;
+        margin-bottom: 6px;
+      }
+      .print-rx table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.8rem;
+        margin-bottom: 12px;
+      }
+      .print-rx th {
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+        padding: 6px 4px;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        color: #666;
+      }
+      .print-rx td {
+        padding: 8px 4px;
+        border-bottom: 1px solid #eee;
+      }
+      .print-rx .print-sig {
+        font-size: 0.85rem;
+        margin-bottom: 16px;
+        font-style: italic;
+      }
+      .print-rx .print-footer {
+        font-size: 0.7rem;
+        color: #666;
+        border-top: 1px solid #ddd;
+        padding-top: 10px;
+        margin-top: 10px;
+      }
+
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      .modal-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .modal-box {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 520px;
+        width: 90%;
+        max-height: 85vh;
+        overflow-y: auto;
+        transform: scale(0.95);
+        transition: transform 0.3s;
+      }
+      .modal-overlay.active .modal-box {
+        transform: scale(1);
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      .modal-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+      .modal-close {
+        background: none;
+        border: none;
+        color: var(--text-dim);
+        font-size: 1.5rem;
+        cursor: pointer;
+        line-height: 1;
+      }
+      .modal-close:hover {
+        color: var(--text);
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 20px;
+        color: var(--text-dim);
+        font-size: 0.8rem;
+      }
+    </style>
+    <base target="_blank" />
+  </head>
+  <body>
+    <div class="dash-shell">
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              margin-bottom: 8px;
+            "
+          >
+            <img
+              src="https://i.postimg.cc/J7PDSJ7Z/Whats-App-Image-2026-05-15-at-14-28-51.jpg"
+              alt="SmartClinic"
+              style="
+                height: 26px;
+                width: auto;
+                border-radius: 6px;
+                object-fit: contain;
+              "
+            />
+            <span
+              style="
+                font-family: var(--mono);
+                font-size: 1rem;
+                font-weight: 700;
+                color: #fff;
+              "
+              >Smart<span style="color: var(--green)">Clinic</span></span
+            >
+          </div>
+          <div class="role-pill">Doctor</div>
+        </div>
+        <nav class="sidebar-nav">
+          <div class="nav-section-label">Main</div>
+          <a
+            class="nav-item active"
+            href="#"
+            onclick="return go('consult', event);"
+            ><span class="icon">👨‍⚕️</span>Consultation</a
+          >
+          <a class="nav-item" href="#" onclick="return go('queue', event);"
+            ><span class="icon">🖥</span>My Queue</a
+          >
+          <a class="nav-item" href="#" onclick="return go('prediction', event);"
+            ><span class="icon">⏱</span>Prediction Log</a
+          >
+          <a
+            class="nav-item"
+            href="#"
+            onclick="return go('prescriptions', event);"
+            ><span class="icon">💊</span>Prescriptions</a
+          >
+          <a class="nav-item" href="#" onclick="return go('contacts', event);"
+            ><span class="icon">📞</span>Doctor Contacts</a
+          >
+        </nav>
+        <div class="sidebar-footer">
+          <div class="user-chip">
+            <div class="av" id="sb-av">MN</div>
+            <div class="info">
+              <div class="uname" id="sb-name">Dr M. Nkosi</div>
+              <div class="urole" id="sb-contact">031-555-0101</div>
+            </div>
+          </div>
+          <button
+            class="btn btn-outline btn-sm btn-block"
+            style="margin-top: 10px"
+            onclick="logout()"
+          >
+            Sign Out
+          </button>
+        </div>
+      </aside>
+
+      <div class="main-content">
+        <div class="topbar">
+          <div>
+            <div class="topbar-title" id="pg-title">Consultation</div>
+            <div class="topbar-meta" id="pg-meta">
+              Manage your active consultation
+            </div>
+          </div>
+          <div class="topbar-right">
+            <span class="badge badge-green" id="q-badge">0 waiting</span>
+            <span
+              style="font-size: 0.78rem; color: var(--text-dim)"
+              id="clock"
+            ></span>
+          </div>
+        </div>
+        <div class="page-body">
+          <!-- CONSULTATION -->
+          <div id="sec-consult">
+            <div class="g2" style="align-items: start">
+              <!-- Active panel -->
+              <div class="card fade-in">
+                <div class="card-title">Active Consultation</div>
+                <div
+                  id="no-patient"
+                  style="
+                    text-align: center;
+                    padding: 28px 0;
+                    color: var(--text-dim);
+                  "
+                >
+                  <div style="font-size: 3rem; margin-bottom: 10px">🩺</div>
+                  <div style="font-weight: 600">No active consultation</div>
+                  <div style="font-size: 0.8rem; margin-top: 4px" id="next-lbl">
+                    No patients waiting.
+                  </div>
+                </div>
+                <div id="active-panel" class="hidden">
+                  <div class="patient-hero">
+                    <div class="pn" id="doc-pname">—</div>
+                    <div class="pp" id="doc-ppid">—</div>
+                  </div>
+                  <div class="timer-big" id="doc-timer">00:00</div>
+
+                  <!-- ===== PRESCRIPTION PANEL ===== -->
+                  <div class="rx-section">
+                    <div class="rx-section-title">💊 Write Prescription</div>
+
+                    <div id="rx-form-rows">
+                      <div class="rx-row">
+                        <input
+                          type="text"
+                          class="rx-drug"
+                          placeholder="Medication name (e.g. Amoxicillin)"
+                          onkeydown="if (event.key === 'Enter') addRxRow();"
+                        />
+                        <input
+                          type="text"
+                          class="rx-qty"
+                          placeholder="Qty"
+                          onkeydown="if (event.key === 'Enter') addRxRow();"
+                        />
+                        <select class="rx-unit">
+                          <option value="mg">mg</option>
+                          <option value="g">g</option>
+                          <option value="ml">ml</option>
+                          <option value="tabs">tabs</option>
+                          <option value="caps">caps</option>
+                          <option value="units">units</option>
+                        </select>
+                        <input
+                          type="text"
+                          class="rx-instr"
+                          placeholder="Instructions (e.g. 1 tab 3x daily)"
+                          onkeydown="if (event.key === 'Enter') addRxRow();"
+                        />
+                        <button
+                          class="rx-del-btn"
+                          onclick="removeRxRow(this)"
+                          title="Remove"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                    <button class="rx-add-btn" onclick="addRxRow()">
+                      + Add Another Medication
+                    </button>
+
+                    <div style="margin-top: 10px">
+                      <div
+                        style="
+                          font-size: 0.75rem;
+                          color: var(--text-dim);
+                          margin-bottom: 4px;
+                        "
+                      >
+                        General Instructions / Notes
+                      </div>
+                      <textarea
+                        class="rx-textarea"
+                        id="rx-notes"
+                        placeholder="Additional directions for the patient..."
+                      ></textarea>
+                    </div>
+
+                    <div class="rx-actions">
+                      <button
+                        class="btn btn-primary btn-sm"
+                        onclick="savePrescription()"
+                      >
+                        💾 Save Prescription
+                      </button>
+                      <button
+                        class="btn btn-outline btn-sm"
+                        onclick="previewPrescription()"
+                      >
+                        👁 Preview & Print
+                      </button>
+                      <button
+                        class="btn btn-outline btn-sm"
+                        onclick="clearPrescription()"
+                      >
+                        🗑 Clear
+                      </button>
+                    </div>
+
+                    <div
+                      id="rx-saved-msg"
+                      style="
+                        margin-top: 8px;
+                        font-size: 0.78rem;
+                        color: var(--green);
+                        display: none;
+                      "
+                    >
+                      ✅ Prescription saved successfully.
+                    </div>
+                  </div>
+                  <!-- ===== END PRESCRIPTION PANEL ===== -->
+
+                  <button
+                    class="btn btn-danger btn-lg btn-block"
+                    style="margin-top: 14px"
+                    onclick="endConsult()"
+                  >
+                    ⏹ End Consultation
+                  </button>
+                </div>
+                <hr class="div" />
+                <div
+                  id="next-alert"
+                  class="alert alert-info hidden"
+                  style="margin-bottom: 10px"
+                ></div>
+                <button
+                  id="begin-btn"
+                  class="btn btn-primary btn-lg btn-block"
+                  onclick="beginConsult()"
+                  disabled
+                >
+                  ▶ Begin Next Consultation
+                </button>
+                <p
+                  style="
+                    font-size: 0.72rem;
+                    color: var(--text-dim);
+                    margin-top: 7px;
+                  "
+                  id="begin-sub"
+                >
+                  No patients waiting.
+                </p>
+              </div>
+
+              <!-- Stats -->
+              <div style="display: flex; flex-direction: column; gap: 16px">
+                <div class="card fade-in">
+                  <div class="card-title">Dynamic Prediction Model</div>
+                  <div class="g2" style="gap: 12px; margin-bottom: 12px">
+                    <div class="stat-box" style="padding: 14px">
+                      <div
+                        class="stat-val"
+                        id="pred-avg"
+                        style="font-size: 2rem"
+                      >
+                        15m
+                      </div>
+                      <div class="stat-lbl">Rolling Avg</div>
+                    </div>
+                    <div class="stat-box" style="padding: 14px">
+                      <div
+                        class="stat-val"
+                        id="pred-cnt"
+                        style="font-size: 2rem"
+                      >
+                        0
+                      </div>
+                      <div class="stat-lbl">Done Today</div>
+                    </div>
+                  </div>
+                  <div class="formula-box" id="pred-formula">
+                    Avg = default 15 min (no data yet) Waiting: 0 patients
+                  </div>
+                </div>
+                <div class="card fade-in">
+                  <div class="card-title">Today's Stats</div>
+                  <div class="g2" style="gap: 12px">
+                    <div class="stat-box" style="padding: 14px">
+                      <div class="stat-val" id="st-w" style="font-size: 2rem">
+                        0
+                      </div>
+                      <div class="stat-lbl">Waiting</div>
+                    </div>
+                    <div class="stat-box" style="padding: 14px">
+                      <div class="stat-val" id="st-d" style="font-size: 2rem">
+                        0
+                      </div>
+                      <div class="stat-lbl">Done</div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Quick Rx History for current patient -->
+                <div
+                  class="card fade-in"
+                  id="rx-quick-card"
+                  style="display: none"
+                >
+                  <div class="card-title">📋 Current Rx Preview</div>
+                  <div
+                    id="rx-quick-list"
+                    style="font-size: 0.78rem; color: var(--text-dim)"
+                  >
+                    No medications added yet.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MY QUEUE -->
+          <div id="sec-queue" class="hidden">
+            <div class="card">
+              <div class="section-header">
+                <h3>My Queue — Patients Waiting</h3>
+                <button class="btn btn-outline btn-sm" onclick="refreshDoc()">
+                  ↻ Refresh
+                </button>
+              </div>
+              <div class="tbl-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Patient</th>
+                      <th>ID</th>
+                      <th>Checked In</th>
+                      <th>Est. Wait</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dq-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- PREDICTION LOG -->
+          <div id="sec-prediction" class="hidden">
+            <div class="card">
+              <div class="card-title">PREDICTION_LOGS — Today</div>
+              <div class="tbl-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Patient</th>
+                      <th>Queue #</th>
+                      <th>Estimated</th>
+                      <th>Actual</th>
+                      <th>Accuracy</th>
+                    </tr>
+                  </thead>
+                  <tbody id="pl-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- PRESCRIPTIONS -->
+          <div id="sec-prescriptions" class="hidden">
+            <div class="card">
+              <div
+                class="section-header"
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-bottom: 16px;
+                "
+              >
+                <h3 style="margin: 0">💊 Prescription History</h3>
+                <div style="display: flex; gap: 8px">
+                  <input
+                    type="text"
+                    id="rx-search"
+                    placeholder="Search patient or drug..."
+                    style="
+                      background: rgba(255, 255, 255, 0.06);
+                      border: 1px solid var(--border);
+                      border-radius: 8px;
+                      padding: 6px 10px;
+                      color: var(--text);
+                      font-size: 0.8rem;
+                      outline: none;
+                      width: 200px;
+                    "
+                    oninput="filterPrescriptions()"
+                  />
+                  <button
+                    class="btn btn-outline btn-sm"
+                    onclick="refreshPrescriptions()"
+                  >
+                    ↻ Refresh
+                  </button>
+                </div>
+              </div>
+              <div id="rx-history-container">
+                <div class="empty-state">No prescriptions issued yet.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DOCTOR CONTACTS -->
+          <div id="sec-contacts" class="hidden">
+            <div class="card" style="max-width: 500px">
+              <div class="card-title">Doctor Contact Numbers</div>
+              <p
+                style="
+                  font-size: 0.82rem;
+                  color: var(--text-dim);
+                  margin-bottom: 16px;
+                "
+              >
+                All clinic doctors and their direct contact numbers.
+              </p>
+              <div id="doc-contacts-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Print Modal -->
+    <div class="modal-overlay" id="print-modal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3>🖨 Prescription Preview</h3>
+          <button class="modal-close" onclick="closePrintModal()">×</button>
+        </div>
+        <div id="print-preview-content"></div>
+        <div style="display: flex; gap: 10px; margin-top: 16px">
+          <button class="btn btn-primary btn-block" onclick="window.print()">
+            🖨 Print
+          </button>
+          <button class="btn btn-outline btn-block" onclick="closePrintModal()">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fallback utilities in case api.js fails to load -->
+    <script>
+      if (!window.$) {
+        window.$ = (id) => document.getElementById(id);
+      }
+      if (!window.getUser) {
+        window.getUser = () => {
+          try {
+            return JSON.parse(sessionStorage.getItem("sc_user"));
+          } catch {
+            return null;
+          }
+        };
+      }
+      if (!window.requireAuth) {
+        window.requireAuth = (role) => {
+          const u = getUser();
+          if (!u) {
+            window.location.href = "../login.html";
+            return null;
+          }
+          if (role && u.role !== role) {
+            window.location.href = "../login.html";
+            return null;
+          }
+          return u;
+        };
+      }
+      if (!window.logout) {
+        window.logout = () => {
+          sessionStorage.removeItem("sc_user");
+          window.location.href = "../login.html";
+        };
+      }
+      window.SECS = {
+        consult: "sec-consult",
+        queue: "sec-queue",
+        prediction: "sec-prediction",
+        prescriptions: "sec-prescriptions",
+        contacts: "sec-contacts",
+      };
+      window.TITLES = {
+        consult: "Consultation",
+        queue: "My Queue",
+        prediction: "Prediction Log",
+        prescriptions: "Prescriptions",
+        contacts: "Doctor Contacts",
+      };
+      window.METAS = {
+        consult: "Manage your active consultation",
+        queue: "Patients waiting for you",
+        prediction: "Wait-time accuracy log",
+        prescriptions: "Issued prescriptions & medication history",
+        contacts: "Clinic doctor directory",
+      };
+      window.go = function (name, evt) {
+        evt = evt || window.event;
+        if (evt && evt.preventDefault) evt.preventDefault();
+        Object.keys(window.SECS).forEach((k) => {
+          const e = $(window.SECS[k]);
+          if (e) e.classList.add("hidden");
+        });
+        const target = $(window.SECS[name]);
+        if (target) target.classList.remove("hidden");
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((el) => el.classList.remove("active"));
+        if (evt && evt.target && evt.target.closest) {
+          const nav = evt.target.closest(".nav-item");
+          if (nav) nav.classList.add("active");
+        }
+        const titleEl = $("pg-title");
+        if (titleEl) titleEl.textContent = window.TITLES[name];
+        const metaEl = $("pg-meta");
+        if (metaEl) metaEl.textContent = window.METAS[name];
+        return false;
+      };
+    </script>
+
+    <script src="../js/api.js"></script>
+    <script>
+      // Define navigation first (before auth check)
+      var SECS = {
+        consult: "sec-consult",
+        queue: "sec-queue",
+        prediction: "sec-prediction",
+        prescriptions: "sec-prescriptions",
+        contacts: "sec-contacts",
+      };
+      var TITLES = {
+        consult: "Consultation",
+        queue: "My Queue",
+        prediction: "Prediction Log",
+        prescriptions: "Prescriptions",
+        contacts: "Doctor Contacts",
+      };
+      var METAS = {
+        consult: "Manage your active consultation",
+        queue: "Patients waiting for you",
+        prediction: "Wait-time accuracy log",
+        prescriptions: "Issued prescriptions & medication history",
+        contacts: "Clinic doctor directory",
+      };
+      function go(name, evt) {
+        evt = evt || window.event;
+        if (evt && evt.preventDefault) evt.preventDefault();
+        Object.keys(SECS).forEach((k) => $(SECS[k]).classList.add("hidden"));
+        $(SECS[name]).classList.remove("hidden");
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((el) => el.classList.remove("active"));
+        if (evt && evt.target)
+          evt.target.closest(".nav-item").classList.add("active");
+        $("pg-title").textContent = TITLES[name];
+        $("pg-meta").textContent = METAS[name];
+        if (name === "contacts") renderContacts();
+        if (name === "prescriptions") renderPrescriptionHistory();
+        refreshDoc();
+        return false;
+      }
+
+      let timerSecs = 0,
+        timerInt = null;
+
+      // ===== PRESCRIPTION DATA STORE =====
+      // Store prescriptions in memory (would sync to backend in production)
+      if (!window.SC) window.SC = {};
+      if (!SC.prescriptions) SC.prescriptions = [];
+
+      function refreshDoc() {
+        const waiting = SC.queueEntries
+          .filter((q) => q.status === "CheckedIn")
+          .sort((a, b) => a.queue_position - b.queue_position);
+        const done = SC.predictionLogs.filter((p) => p.actual !== null).length;
+        const avg = rollingAvg();
+        $("q-badge").textContent = waiting.length + " waiting";
+        $("st-w").textContent = waiting.length;
+        $("st-d").textContent = done;
+        $("pred-avg").textContent = avg + "m";
+        $("pred-cnt").textContent = SC.consultationDurations.length;
+        const nums = SC.consultationDurations;
+        $("pred-formula").textContent =
+          nums.length === 0
+            ? "Avg = default 15 min (no data yet)\nWaiting: " +
+              waiting.length +
+              " patients"
+            : "Avg = (" +
+              nums.join(" + ") +
+              ") ÷ " +
+              nums.length +
+              " = " +
+              avg +
+              " min\nWaiting: " +
+              waiting.length +
+              " patients";
+        const beginBtn = $("begin-btn");
+        if (waiting.length > 0 && !SC.activeConsultation) {
+          beginBtn.disabled = false;
+          $("begin-sub").textContent =
+            "Next: " +
+            waiting[0].patient_name +
+            " (" +
+            waiting[0].patient_id +
+            ")";
+          $("next-alert").textContent =
+            "👋 " + waiting[0].patient_name + " is ready.";
+          $("next-alert").classList.remove("hidden");
+        } else {
+          beginBtn.disabled = true;
+          $("begin-sub").textContent = SC.activeConsultation
+            ? "Consultation in progress."
+            : "No patients waiting.";
+          $("next-alert").classList.add("hidden");
+        }
+        // Queue table
+        const tbody = $("dq-tbody");
+        if (!waiting.length) {
+          tbody.innerHTML =
+            '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:20px">No patients waiting.</td></tr>';
+        } else {
+          tbody.innerHTML = waiting
+            .map(
+              (q, i) =>
+                `<tr><td class="qp">#${q.queue_position}</td><td><b>${q.patient_name}</b></td><td><code>${q.patient_id}</code></td><td style="font-size:.78rem;color:var(--text-dim)">${fmtTime(q.checkin_time)}</td><td>${calcWait(i)} min</td><td><span class="badge badge-green">Waiting</span></td></tr>`,
+            )
+            .join("");
+        }
+        // Prediction log
+        const ptbody = $("pl-tbody");
+        const completed = SC.predictionLogs.filter((p) => p.actual !== null);
+        if (!completed.length) {
+          ptbody.innerHTML =
+            '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:14px">No completed consultations yet.</td></tr>';
+        } else {
+          ptbody.innerHTML = completed
+            .map((p) => {
+              const acc = Math.max(
+                0,
+                Math.round(
+                  100 -
+                    Math.abs(
+                      ((p.actual - p.estimated_wait) /
+                        Math.max(p.estimated_wait, 1)) *
+                        100,
+                    ),
+                ),
+              );
+              return `<tr><td><b>${p.patient_name}</b></td><td class="qp">#${p.queue_position}</td><td>${p.estimated_wait} min</td><td>${p.actual} min</td><td><span class="badge badge-${acc >= 80 ? "green" : acc >= 60 ? "amber" : "red"}">${acc}%</span></td></tr>`;
+            })
+            .join("");
+        }
+      }
+
+      function beginConsult() {
+        const waiting = SC.queueEntries
+          .filter((q) => q.status === "CheckedIn")
+          .sort((a, b) => a.queue_position - b.queue_position);
+        if (!waiting.length) return;
+        const next = waiting[0];
+        next.status = "Consulting";
+        SC.activeConsultation = { entry: next, startTime: Date.now() };
+        timerSecs = 0;
+        $("no-patient").classList.add("hidden");
+        $("active-panel").classList.remove("hidden");
+        $("doc-pname").textContent = next.patient_name;
+        $("doc-ppid").textContent = next.patient_id;
+        // Reset prescription form for new patient
+        clearPrescription();
+        $("rx-quick-card").style.display = "none";
+        timerInt = setInterval(() => {
+          timerSecs++;
+          $("doc-timer").textContent =
+            String(Math.floor(timerSecs / 60)).padStart(2, "0") +
+            ":" +
+            String(timerSecs % 60).padStart(2, "0");
+        }, 1000);
+        refreshDoc();
+      }
+      function endConsult() {
+        if (!SC.activeConsultation) return;
+        clearInterval(timerInt);
+        const dur = Math.max(1, Math.round(timerSecs / 60));
+        SC.consultationDurations.push(dur);
+        SC.activeConsultation.entry.status = "Completed";
+        const log = SC.predictionLogs.find(
+          (p) =>
+            p.patient_id === SC.activeConsultation.entry.patient_id &&
+            p.actual === null,
+        );
+        if (log) log.actual = dur;
+        SC.activeConsultation = null;
+        timerSecs = 0;
+        $("doc-timer").textContent = "00:00";
+        $("no-patient").classList.remove("hidden");
+        $("active-panel").classList.add("hidden");
+        $("rx-quick-card").style.display = "none";
+        writeSensor(
+          "ActiveQueueOccupancy",
+          "ConsultationEnd_Auto",
+          null,
+          activeCount(),
+        );
+        refreshDoc();
+      }
+
+      function renderContacts() {
+        $("doc-contacts-list").innerHTML = DOCTORS.map(
+          (d) => `
+    <div class="doc-contact">
+      <div style="font-size:1.3rem">👨‍⚕️</div>
+      <div style="flex:1">
+        <div style="font-weight:700">${d.name}</div>
+        <div style="font-size:.78rem;color:var(--text-dim)">${d.specialty}</div>
+      </div>
+      <div class="dc-num">📞 ${d.contact}</div>
+    </div>`,
+        ).join("");
+      }
+
+      // ===== PRESCRIPTION FUNCTIONS =====
+
+      function addRxRow() {
+        const container = $("rx-form-rows");
+        const row = document.createElement("div");
+        row.className = "rx-row";
+        row.innerHTML = `
+    <input type="text" class="rx-drug" placeholder="Medication name" onkeydown="if(event.key==='Enter')addRxRow()">
+    <input type="text" class="rx-qty" placeholder="Qty" onkeydown="if(event.key==='Enter')addRxRow()">
+    <select class="rx-unit">
+      <option value="mg">mg</option>
+      <option value="g">g</option>
+      <option value="ml">ml</option>
+      <option value="tabs">tabs</option>
+      <option value="caps">caps</option>
+      <option value="units">units</option>
+    </select>
+    <input type="text" class="rx-instr" placeholder="Instructions" onkeydown="if(event.key==='Enter')addRxRow()">
+    <button class="rx-del-btn" onclick="removeRxRow(this)" title="Remove">×</button>
+  `;
+        container.appendChild(row);
+        row.querySelector(".rx-drug").focus();
+      }
+
+      function removeRxRow(btn) {
+        const rows = $("rx-form-rows").querySelectorAll(".rx-row");
+        if (rows.length > 1) btn.closest(".rx-row").remove();
+        else {
+          // Clear instead of removing last row
+          const inputs = btn.closest(".rx-row").querySelectorAll("input");
+          inputs.forEach((i) => (i.value = ""));
+          btn.closest(".rx-row").querySelector("select").value = "mg";
+        }
+      }
+
+      function getRxData() {
+        const rows = $("rx-form-rows").querySelectorAll(".rx-row");
+        const meds = [];
+        rows.forEach((row) => {
+          const drug = row.querySelector(".rx-drug").value.trim();
+          const qty = row.querySelector(".rx-qty").value.trim();
+          const unit = row.querySelector(".rx-unit").value;
+          const instr = row.querySelector(".rx-instr").value.trim();
+          if (drug) meds.push({ drug, qty, unit, instr });
+        });
+        return meds;
+      }
+
+      function updateRxPreview() {
+        const meds = getRxData();
+        const quickList = $("rx-quick-list");
+        const quickCard = $("rx-quick-card");
+        if (meds.length === 0) {
+          quickList.textContent = "No medications added yet.";
+          quickCard.style.display = "none";
+          return;
+        }
+        quickCard.style.display = "block";
+        quickList.innerHTML = meds
+          .map(
+            (m, i) => `
+    <div class="rx-item">
+      <div class="rx-num">${i + 1}</div>
+      <div class="rx-body">
+        <div class="rx-name">${m.drug} ${m.qty ? m.qty : ""}${m.unit !== "mg" ? m.unit : ""}</div>
+        <div class="rx-detail">${m.instr || "No instructions"}</div>
+      </div>
+      <div class="rx-remove" onclick="removeRxFromPreview(${i})" title="Remove">×</div>
+    </div>
+  `,
+          )
+          .join("");
+      }
+
+      function removeRxFromPreview(index) {
+        const rows = $("rx-form-rows").querySelectorAll(".rx-row");
+        if (rows[index]) {
+          rows[index].querySelector(".rx-drug").value = "";
+          rows[index].querySelector(".rx-qty").value = "";
+          rows[index].querySelector(".rx-instr").value = "";
+        }
+        updateRxPreview();
+      }
+
+      function savePrescription() {
+        if (!SC.activeConsultation) {
+          alert("No active consultation. Begin a consultation first.");
+          return;
+        }
+        const meds = getRxData();
+        if (meds.length === 0) {
+          alert("Please add at least one medication.");
+          return;
+        }
+        const notes = $("rx-notes").value.trim();
+        const rx = {
+          id: "RX-" + Date.now(),
+          patientId: SC.activeConsultation.entry.patient_id,
+          patientName: SC.activeConsultation.entry.patient_name,
+          doctorName: $("sb-name").textContent,
+          doctorContact: $("sb-contact").textContent,
+          timestamp: Date.now(),
+          medications: meds,
+          notes: notes,
+          status: "active",
+        };
+        if (!SC.prescriptions) SC.prescriptions = [];
+        SC.prescriptions.unshift(rx);
+
+        // Show success
+        const msg = $("rx-saved-msg");
+        msg.style.display = "block";
+        msg.textContent =
+          "✅ Prescription saved for " +
+          SC.activeConsultation.entry.patient_name;
+        setTimeout(() => (msg.style.display = "none"), 3000);
+
+        updateRxPreview();
+
+        // Also write to sensor log for audit trail
+        writeSensor(
+          "PrescriptionIssued",
+          "DoctorPortal",
+          SC.activeConsultation.entry.patient_id,
+          meds.length,
+        );
+      }
+
+      function previewPrescription() {
+        const meds = getRxData();
+        if (meds.length === 0) {
+          alert("No medications to preview. Add medications first.");
+          return;
+        }
+        const patient = SC.activeConsultation
+          ? SC.activeConsultation.entry.patient_name
+          : "Unknown Patient";
+        const pid = SC.activeConsultation
+          ? SC.activeConsultation.entry.patient_id
+          : "—";
+        const doctor = $("sb-name").textContent;
+        const date = new Date().toLocaleDateString("en-ZA", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+        const notes = $("rx-notes").value.trim();
+
+        const html = `
+    <div class="print-rx">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <img src="https://i.postimg.cc/J7PDSJ7Z/Whats-App-Image-2026-05-15-at-14-28-51.jpg" style="height:32px;border-radius:4px">
+        <div>
+          <h3>SmartClinic</h3>
+          <div class="print-meta">Official Prescription</div>
+        </div>
+      </div>
+      <div class="print-meta">Date: ${date} | Rx ID: RX-${Date.now().toString().slice(-6)}</div>
+      <div class="print-patient">${patient} <span style="font-weight:400;font-size:.85rem;color:#666">(${pid})</span></div>
+      <div class="print-rx-label">Prescribed by</div>
+      <div style="font-size:.85rem;margin-bottom:12px">${doctor}</div>
+      <div class="print-rx-label">Medications</div>
+      <table>
+        <thead><tr><th>#</th><th>Medication</th><th>Dosage</th><th>Instructions</th></tr></thead>
+        <tbody>
+          ${meds.map((m, i) => `<tr><td>${i + 1}</td><td><b>${m.drug}</b></td><td>${m.qty || "—"} ${m.unit}</td><td>${m.instr || "—"}</td></tr>`).join("")}
+        </tbody>
+      </table>
+      ${notes ? `<div class="print-rx-label">Special Instructions</div><div class="print-sig">${notes}</div>` : ""}
+      <div class="print-footer">
+        This prescription is valid for 6 months from date of issue.<br>
+        SmartClinic — 031-555-0101 | prescriptions@smartclinic.local
+      </div>
+    </div>
+  `;
+        $("print-preview-content").innerHTML = html;
+        $("print-modal").classList.add("active");
+      }
+
+      function closePrintModal() {
+        $("print-modal").classList.remove("active");
+      }
+
+      function clearPrescription() {
+        $("rx-form-rows").innerHTML = `
+    <div class="rx-row">
+      <input type="text" class="rx-drug" placeholder="Medication name (e.g. Amoxicillin)" onkeydown="if(event.key==='Enter')addRxRow()">
+      <input type="text" class="rx-qty" placeholder="Qty" onkeydown="if(event.key==='Enter')addRxRow()">
+      <select class="rx-unit">
+        <option value="mg">mg</option>
+        <option value="g">g</option>
+        <option value="ml">ml</option>
+        <option value="tabs">tabs</option>
+        <option value="caps">caps</option>
+        <option value="units">units</option>
+      </select>
+      <input type="text" class="rx-instr" placeholder="Instructions (e.g. 1 tab 3x daily)" onkeydown="if(event.key==='Enter')addRxRow()">
+      <button class="rx-del-btn" onclick="removeRxRow(this)" title="Remove">×</button>
+    </div>
+  `;
+        $("rx-notes").value = "";
+        $("rx-saved-msg").style.display = "none";
+        updateRxPreview();
+      }
+
+      function renderPrescriptionHistory() {
+        const container = $("rx-history-container");
+        const search = $("rx-search") ? $("rx-search").value.toLowerCase() : "";
+        let rxs = SC.prescriptions || [];
+
+        if (search) {
+          rxs = rxs.filter(
+            (r) =>
+              r.patientName.toLowerCase().includes(search) ||
+              r.patientId.toLowerCase().includes(search) ||
+              r.medications.some((m) => m.drug.toLowerCase().includes(search)),
+          );
+        }
+
+        if (!rxs.length) {
+          container.innerHTML =
+            '<div class="empty-state">' +
+            (!SC.prescriptions || !SC.prescriptions.length
+              ? "No prescriptions issued yet."
+              : "No matching prescriptions found.") +
+            "</div>";
+          return;
+        }
+
+        container.innerHTML = rxs
+          .map((r) => {
+            const date = new Date(r.timestamp).toLocaleString("en-ZA", {
+              day: "2-digit",
+              month: "short",
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+            return `
+      <div class="rx-history-item">
+        <div class="rx-h-date">${date} · ${r.doctorName}</div>
+        <div class="rx-h-patient">${r.patientName} <span style="font-weight:400;font-size:.8rem;color:var(--text-dim)">(${r.patientId})</span></div>
+        <div class="rx-h-meds">
+          ${r.medications.map((m) => `<span>${m.drug} ${m.qty}${m.unit}</span>`).join("")}
+        </div>
+        ${r.notes ? `<div style="font-size:.75rem;color:var(--text-dim);margin-top:6px;font-style:italic">“${r.notes}”</div>` : ""}
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-outline btn-sm" onclick="reprintRx('${r.id}')">🖨 Reprint</button>
+          <button class="btn btn-outline btn-sm" onclick="viewRxDetail('${r.id}')">👁 View</button>
+        </div>
+      </div>
+    `;
+          })
+          .join("");
+      }
+
+      function filterPrescriptions() {
+        renderPrescriptionHistory();
+      }
+
+      function refreshPrescriptions() {
+        renderPrescriptionHistory();
+      }
+
+      function reprintRx(rxId) {
+        const rx = SC.prescriptions.find((p) => p.id === rxId);
+        if (!rx) return;
+        const date = new Date(rx.timestamp).toLocaleDateString("en-ZA", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+        const html = `
+    <div class="print-rx">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <img src="https://i.postimg.cc/J7PDSJ7Z/Whats-App-Image-2026-05-15-at-14-28-51.jpg" style="height:32px;border-radius:4px">
+        <div>
+          <h3>SmartClinic</h3>
+          <div class="print-meta">Official Prescription (Reprint)</div>
+        </div>
+      </div>
+      <div class="print-meta">Date: ${date} | Rx ID: ${rx.id.slice(-10)}</div>
+      <div class="print-patient">${rx.patientName} <span style="font-weight:400;font-size:.85rem;color:#666">(${rx.patientId})</span></div>
+      <div class="print-rx-label">Prescribed by</div>
+      <div style="font-size:.85rem;margin-bottom:12px">${rx.doctorName}</div>
+      <div class="print-rx-label">Medications</div>
+      <table>
+        <thead><tr><th>#</th><th>Medication</th><th>Dosage</th><th>Instructions</th></tr></thead>
+        <tbody>
+          ${rx.medications.map((m, i) => `<tr><td>${i + 1}</td><td><b>${m.drug}</b></td><td>${m.qty || "—"} ${m.unit}</td><td>${m.instr || "—"}</td></tr>`).join("")}
+        </tbody>
+      </table>
+      ${rx.notes ? `<div class="print-rx-label">Special Instructions</div><div class="print-sig">${rx.notes}</div>` : ""}
+      <div class="print-footer">
+        <b>REPRINT</b> — Original issued ${date}<br>
+        SmartClinic — ${rx.doctorContact || "031-555-0101"}
+      </div>
+    </div>
+  `;
+        $("print-preview-content").innerHTML = html;
+        $("print-modal").classList.add("active");
+      }
+
+      function viewRxDetail(rxId) {
+        reprintRx(rxId); // Same preview for now
+      }
+
+      // Close modal on overlay click
+      $("print-modal").addEventListener("click", function (e) {
+        if (e.target === this) closePrintModal();
+      });
+
+      refreshDoc();
+      setInterval(refreshDoc, 5000);
+      document.addEventListener("sensor2tick", refreshDoc);
+    </script>
+  </body>
+</html>

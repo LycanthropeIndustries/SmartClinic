@@ -1,5 +1,5 @@
 // controllers/index.js
-const { Users, Patients, Doctors, Appointments, Queue, Sensors, Predictions } = require('../models');
+const { Users, Patients, Doctors, Appointments, Queue, Sensors, Predictions } = require('../models/index.js');
 
 // ── Rolling average helper ────────────────────
 const rollingAvg = (durations) => {
@@ -36,22 +36,72 @@ exports.getUsers = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+exports.createUser = async (req, res, next) => {
+  try {
+    const { full_name, email, role, password, is_active = true } = req.body;
+    if (!full_name || !email || !role) return res.status(400).json({ success:false, error: 'full_name, email and role required' });
+    const user = await Users.create({ full_name, email, role, password, is_active });
+    res.status(201).json({ success: true, data: user });
+  } catch (err) { next(err); }
+};
+
+exports.updateUser = async (req, res, next) => {
+  try {
+    const updated = await Users.update(req.params.id, req.body);
+    res.json({ success: true, data: updated });
+  } catch (err) { next(err); }
+};
+
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const result = await Users.delete(req.params.id);
+    res.json({ success: true, ...result });
+  } catch (err) { next(err); }
+};
+
 // ─────────────────────────────────────────────
 // PATIENTS
 // ─────────────────────────────────────────────
 exports.createPatient = async (req, res, next) => {
   try {
-    const { full_name, id_number, dob, contact, email } = req.body;
+    const { full_name, id_number, dob, contact, email, patient_id: requestedId } = req.body;
     if (!full_name || !id_number)
       return res.status(400).json({ success: false, error: 'full_name and id_number required' });
     if (!/^\d{13}$/.test(id_number))
       return res.status(400).json({ success: false, error: 'id_number must be 13 digits' });
 
-    const patient = await Patients.create({ full_name, id_number, dob, contact, email });
-    res.status(201).json({ success: true, data: patient });
+    let created = null;
+    let patient_id = requestedId;
+    for (let attempt = 0; attempt < 6 && !created; attempt++) {
+      if (!patient_id) {
+        const lastId = await Patients.getLatestPatientId();
+        const nextNumber = lastId && /^PAT-(\d{6})$/.test(lastId)
+          ? parseInt(lastId.slice(4), 10) + attempt + 1
+          : 1 + attempt;
+        patient_id = 'PAT-' + String(nextNumber).padStart(6, '0');
+      }
+
+      try {
+        created = await Patients.create({ patient_id, full_name, id_number, dob, contact, email });
+      } catch (err) {
+        if (err.code === '23505') {
+          const msg = err.message || '';
+          if (msg.includes('id_number')) {
+            return res.status(409).json({ success: false, error: 'Patient with this ID number already exists' });
+          }
+          if (requestedId) {
+            return res.status(409).json({ success: false, error: 'Patient ID already exists' });
+          }
+          patient_id = null;
+          continue;
+        }
+        throw err;
+      }
+    }
+
+    if (!created) throw new Error('Unable to generate a unique patient ID. Please try again.');
+    res.status(201).json({ success: true, data: created });
   } catch (err) {
-    if (err.code === '23505')
-      return res.status(409).json({ success: false, error: 'Patient with this ID number already exists' });
     next(err);
   }
 };
@@ -176,6 +226,13 @@ exports.updateAppointmentStatus = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+exports.updateAppointment = async (req, res, next) => {
+  try {
+    const updated = await Appointments.update(req.params.id, req.body);
+    res.json({ success: true, data: updated });
+  } catch (err) { next(err); }
+};
+
 exports.deleteAppointment = async (req, res, next) => {
   try {
     const result = await Appointments.delete(req.params.id);
@@ -263,7 +320,8 @@ exports.endConsultation = async (req, res, next) => {
     const consult_end = new Date().toISOString();
 
     // Get current entry to calculate duration
-    const { data: current } = await require('../config/supabase')
+    const supabase = require('../config/supabase.js');
+    const { data: current } = await supabase
       .from('queue_entries')
       .select('consult_start, appointment_id')
       .eq('queue_id', queue_id)

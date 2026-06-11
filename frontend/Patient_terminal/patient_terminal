@@ -1,0 +1,930 @@
+#!/usr/bin/env node
+// ─────────────────────────────────────────────────────────────
+//  SmartClinic Patient Terminal Portal
+//  Usage: node patient-portal.js
+//  Requires: npm install axios readline-sync chalk
+// ─────────────────────────────────────────────────────────────
+
+const readline = require("readline");
+
+// ── Config ───────────────────────────────────────────────────
+const API_BASE = process.env.SMARTCLINIC_API || "http://localhost:3000/api";
+
+// ── Simple HTTP helper (no external deps beyond node built-ins) ──
+const https = require("https");
+const http = require("http");
+const url = require("url");
+
+function apiRequest(method, path, body) {
+  return new Promise((resolve, reject) => {
+    const fullUrl = url.parse(API_BASE + path);
+    const isHttps = fullUrl.protocol === "https:";
+    const lib = isHttps ? https : http;
+    const data = body ? JSON.stringify(body) : null;
+
+    const options = {
+      hostname: fullUrl.hostname,
+      port: fullUrl.port || (isHttps ? 443 : 80),
+      path: fullUrl.path,
+      method: method.toUpperCase(),
+      headers: {
+        "Content-Type": "application/json",
+        ...(data ? { "Content-Length": Buffer.byteLength(data) } : {}),
+      },
+    };
+
+    const req = lib.request(options, (res) => {
+      let raw = "";
+      res.on("data", (chunk) => (raw += chunk));
+      res.on("end", () => {
+        try {
+          const parsed = JSON.parse(raw);
+          if (res.statusCode >= 400)
+            reject(
+              new ApiError(parsed.error || "Request failed", res.statusCode),
+            );
+          else resolve(parsed);
+        } catch {
+          reject(new Error("Invalid response from server"));
+        }
+      });
+    });
+
+    req.on("error", (e) =>
+      reject(new Error(`Cannot connect to SmartClinic server: ${e.message}`)),
+    );
+    if (data) req.write(data);
+    req.end();
+  });
+}
+
+class ApiError extends Error {
+  constructor(msg, status) {
+    super(msg);
+    this.status = status;
+  }
+}
+
+// ── Terminal colours (works without chalk) ───────────────────
+const C = {
+  reset: "\x1b[0m",
+  bold: "\x1b[1m",
+  dim: "\x1b[2m",
+  green: "\x1b[32m",
+  cyan: "\x1b[36m",
+  yellow: "\x1b[33m",
+  red: "\x1b[31m",
+  blue: "\x1b[34m",
+  magenta: "\x1b[35m",
+  white: "\x1b[37m",
+  bgBlue: "\x1b[44m",
+  bgGreen: "\x1b[42m",
+};
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+const ask = (prompt) => new Promise((resolve) => rl.question(prompt, resolve));
+
+// ── Helpers ──────────────────────────────────────────────────
+function clear() {
+  process.stdout.write("\x1Bc");
+}
+
+function banner(title, sub = "") {
+  const width = 60;
+  const line = "─".repeat(width);
+  console.log(`\n${C.cyan}${C.bold}┌${line}┐${C.reset}`);
+  console.log(
+    `${C.cyan}${C.bold}│${C.reset}${C.bold}  🏥  SmartClinic Patient Portal${" ".repeat(width - 33)}${C.cyan}${C.bold}│${C.reset}`,
+  );
+  if (title) {
+    const pad = Math.max(0, width - title.length - 4);
+    console.log(
+      `${C.cyan}${C.bold}│${C.reset}  ${C.white}${C.bold}${title}${C.reset}${" ".repeat(pad)}${C.cyan}${C.bold}│${C.reset}`,
+    );
+  }
+  if (sub) {
+    const pad = Math.max(0, width - sub.length - 4);
+    console.log(
+      `${C.cyan}${C.bold}│${C.reset}  ${C.dim}${sub}${C.reset}${" ".repeat(pad)}${C.cyan}${C.bold}│${C.reset}`,
+    );
+  }
+  console.log(`${C.cyan}${C.bold}└${line}┘${C.reset}\n`);
+}
+
+function success(msg) {
+  console.log(`\n${C.green}✔  ${msg}${C.reset}`);
+}
+function error(msg) {
+  console.log(`\n${C.red}✖  ${msg}${C.reset}`);
+}
+function info(msg) {
+  console.log(`${C.cyan}ℹ  ${msg}${C.reset}`);
+}
+function warn(msg) {
+  console.log(`${C.yellow}⚠  ${msg}${C.reset}`);
+}
+
+function divider(label = "") {
+  if (label)
+    console.log(
+      `\n${C.dim}── ${label} ${"─".repeat(Math.max(0, 48 - label.length))}${C.reset}`,
+    );
+  else console.log(`${C.dim}${"─".repeat(52)}${C.reset}`);
+}
+
+function formatDate(iso) {
+  if (!iso) return "N/A";
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-ZA", {
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function formatDateTime(iso) {
+  if (!iso) return "N/A";
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-ZA", {
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function statusBadge(status) {
+  const map = {
+    Booked: `${C.blue}[Booked]${C.reset}`,
+    CheckedIn: `${C.cyan}[Checked In]${C.reset}`,
+    Consulting: `${C.magenta}[Consulting]${C.reset}`,
+    Completed: `${C.green}[Completed]${C.reset}`,
+    Cancelled: `${C.red}[Cancelled]${C.reset}`,
+    NoShow: `${C.yellow}[No Show]${C.reset}`,
+  };
+  return map[status] || `[${status}]`;
+}
+
+async function pressEnter() {
+  await ask(`\n${C.dim}Press Enter to continue...${C.reset}`);
+}
+
+// ── State ────────────────────────────────────────────────────
+let session = null; // { user_id, full_name, email, patient_id }
+
+// ─────────────────────────────────────────────────────────────
+//  REGISTER
+// ─────────────────────────────────────────────────────────────
+async function register() {
+  clear();
+  banner("Create Patient Account", "Register to access the patient portal");
+
+  console.log(
+    `${C.dim}Please provide your details below. Fields marked * are required.${C.reset}\n`,
+  );
+
+  const full_name = (await ask(`  ${C.bold}* Full Name:${C.reset} `)).trim();
+  if (!full_name) {
+    error("Full name is required.");
+    await pressEnter();
+    return;
+  }
+
+  const id_number = (
+    await ask(`  ${C.bold}* SA ID Number (13 digits):${C.reset} `)
+  ).trim();
+  if (!/^\d{13}$/.test(id_number)) {
+    error("ID number must be exactly 13 digits.");
+    await pressEnter();
+    return;
+  }
+
+  const email = (await ask(`  ${C.bold}* Email Address:${C.reset} `))
+    .trim()
+    .toLowerCase();
+  if (!email.includes("@")) {
+    error("Please enter a valid email address.");
+    await pressEnter();
+    return;
+  }
+
+  const password = (
+    await ask(`  ${C.bold}* Password (min 6 chars):${C.reset} `)
+  ).trim();
+  if (password.length < 6) {
+    error("Password must be at least 6 characters.");
+    await pressEnter();
+    return;
+  }
+
+  const dob =
+    (
+      await ask(`  ${C.dim}Date of Birth (YYYY-MM-DD, optional):${C.reset} `)
+    ).trim() || null;
+  const contact =
+    (await ask(`  ${C.dim}Contact Number (optional):${C.reset} `)).trim() ||
+    null;
+
+  divider();
+  console.log(`  ${C.bold}Review your details:${C.reset}`);
+  console.log(`  Name:    ${full_name}`);
+  console.log(`  ID:      ${id_number}`);
+  console.log(`  Email:   ${email}`);
+  if (dob) console.log(`  DOB:     ${dob}`);
+  if (contact) console.log(`  Phone:   ${contact}`);
+  divider();
+
+  const confirm = (await ask(`\n  Confirm registration? (y/n): `))
+    .trim()
+    .toLowerCase();
+  if (confirm !== "y") {
+    info("Registration cancelled.");
+    await pressEnter();
+    return;
+  }
+
+  try {
+    info("Creating patient record...");
+    // Step 1: Create patient record
+    const patRes = await apiRequest("POST", "/patients", {
+      full_name,
+      id_number,
+      dob,
+      contact,
+      email,
+    });
+    const patient_id = patRes.data.patient_id;
+
+    // Step 2: Create user account linked to patient
+    const userRes = await apiRequest("POST", "/auth/users", {
+      full_name,
+      email,
+      password,
+      role: "patient",
+      patient_id,
+      is_active: true,
+    });
+
+    success(
+      `Registration successful! Your Patient ID is: ${C.bold}${C.cyan}${patient_id}${C.reset}`,
+    );
+    info("You can now log in with your email and password.");
+    console.log(
+      `\n  ${C.dim}Keep your Patient ID safe: ${C.bold}${patient_id}${C.reset}`,
+    );
+  } catch (err) {
+    if (err.status === 409) {
+      error(`Registration failed: ${err.message}`);
+      info("If you already have an account, please log in instead.");
+    } else {
+      error(`Registration failed: ${err.message}`);
+    }
+  }
+
+  await pressEnter();
+}
+
+// ─────────────────────────────────────────────────────────────
+//  LOGIN
+// ─────────────────────────────────────────────────────────────
+async function login() {
+  clear();
+  banner("Patient Login", "Sign in to your SmartClinic account");
+
+  const email = (await ask(`  ${C.bold}Email:${C.reset} `))
+    .trim()
+    .toLowerCase();
+  const password = (await ask(`  ${C.bold}Password:${C.reset} `)).trim();
+
+  try {
+    const res = await apiRequest("POST", "/auth/login", { email, password });
+    const user = res.data;
+
+    if (user.role !== "patient") {
+      error(
+        "This portal is for patients only. Please use the staff web interface.",
+      );
+      await pressEnter();
+      return;
+    }
+    if (!user.is_active) {
+      error("Your account is inactive. Please contact the clinic.");
+      await pressEnter();
+      return;
+    }
+
+    session = {
+      user_id: user.user_id,
+      full_name: user.full_name,
+      email: user.email,
+      patient_id: user.patient_id,
+    };
+    success(`Welcome back, ${C.bold}${user.full_name}${C.reset}${C.green}!`);
+    await pressEnter();
+  } catch (err) {
+    error(`Login failed: ${err.message}`);
+    await pressEnter();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  VIEW APPOINTMENTS
+// ─────────────────────────────────────────────────────────────
+async function viewAppointments() {
+  clear();
+  banner("My Appointments", `Patient ID: ${session.patient_id}`);
+
+  try {
+    const res = await apiRequest(
+      "GET",
+      `/patients/${session.patient_id}/appointments`,
+    );
+    const appts = res.data;
+
+    if (!appts || appts.length === 0) {
+      info("You have no appointments on record.");
+      await pressEnter();
+      return;
+    }
+
+    // Sort: upcoming first, then past
+    const now = new Date();
+    const upcoming = appts.filter(
+      (a) =>
+        new Date(a.datetime) >= now &&
+        !["Cancelled", "Completed", "NoShow"].includes(a.status),
+    );
+    const past = appts.filter((a) => !upcoming.includes(a));
+
+    if (upcoming.length > 0) {
+      divider("UPCOMING APPOINTMENTS");
+      upcoming.forEach((a, i) => {
+        console.log(
+          `\n  ${C.bold}${i + 1}.${C.reset} ${statusBadge(a.status)}`,
+        );
+        console.log(
+          `     ${C.bold}Date:${C.reset}   ${formatDateTime(a.datetime)}`,
+        );
+        console.log(
+          `     ${C.bold}Doctor:${C.reset} ${a.doctors?.name || "TBC"} — ${a.doctors?.department || ""}`,
+        );
+        if (a.reason)
+          console.log(`     ${C.bold}Reason:${C.reset} ${a.reason}`);
+        console.log(`     ${C.dim}ID: ${a.appointment_id}${C.reset}`);
+      });
+    }
+
+    if (past.length > 0) {
+      divider("PAST APPOINTMENTS");
+      past.slice(0, 5).forEach((a, i) => {
+        console.log(
+          `\n  ${C.dim}${i + 1}. ${statusBadge(a.status)} ${formatDateTime(a.datetime)}`,
+        );
+        console.log(`     Doctor: ${a.doctors?.name || "N/A"}${C.reset}`);
+      });
+      if (past.length > 5)
+        info(`...and ${past.length - 5} more older appointments.`);
+    }
+  } catch (err) {
+    error(`Could not load appointments: ${err.message}`);
+  }
+
+  await pressEnter();
+}
+
+// ─────────────────────────────────────────────────────────────
+//  BOOK APPOINTMENT — shows available + taken slots
+// ─────────────────────────────────────────────────────────────
+async function bookAppointment() {
+  clear();
+  banner("Book an Appointment", "View available slots and book your visit");
+
+  // Step 1: Pick a doctor
+  let doctors = [];
+  try {
+    const res = await apiRequest("GET", "/doctors");
+    doctors = res.data;
+  } catch (err) {
+    error(`Could not load doctors: ${err.message}`);
+    await pressEnter();
+    return;
+  }
+
+  if (!doctors.length) {
+    info("No doctors available at this time.");
+    await pressEnter();
+    return;
+  }
+
+  divider("SELECT A DOCTOR");
+  doctors.forEach((d, i) => {
+    console.log(`  ${C.bold}${i + 1}.${C.reset} Dr. ${d.name}`);
+    if (d.department)
+      console.log(`     ${C.dim}Department: ${d.department}${C.reset}`);
+    if (d.specialisation)
+      console.log(`     ${C.dim}Specialisation: ${d.specialisation}${C.reset}`);
+  });
+  console.log(`  ${C.bold}0.${C.reset} ${C.dim}← Back${C.reset}`);
+
+  const docChoice = parseInt(
+    await ask(`\n  Choose doctor [0–${doctors.length}]: `),
+  );
+  if (isNaN(docChoice) || docChoice === 0) return;
+  if (docChoice < 1 || docChoice > doctors.length) {
+    error("Invalid choice.");
+    await pressEnter();
+    return;
+  }
+
+  const selectedDoctor = doctors[docChoice - 1];
+
+  // Step 2: Choose date
+  divider("SELECT A DATE");
+  const today = new Date();
+  const dates = [];
+  for (let d = 1; d <= 7; d++) {
+    const dt = new Date(today);
+    dt.setDate(today.getDate() + d);
+    // Skip Sundays
+    if (dt.getDay() !== 0) dates.push(dt);
+  }
+
+  dates.forEach((d, i) => {
+    const label = d.toLocaleDateString("en-ZA", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    });
+    console.log(`  ${C.bold}${i + 1}.${C.reset} ${label}`);
+  });
+  console.log(`  ${C.bold}0.${C.reset} ${C.dim}← Back${C.reset}`);
+
+  const dateChoice = parseInt(
+    await ask(`\n  Choose date [0–${dates.length}]: `),
+  );
+  if (isNaN(dateChoice) || dateChoice === 0) return;
+  if (dateChoice < 1 || dateChoice > dates.length) {
+    error("Invalid choice.");
+    await pressEnter();
+    return;
+  }
+
+  const selectedDate = dates[dateChoice - 1];
+  const dateStr = selectedDate.toISOString().split("T")[0];
+
+  // Step 3: Show available vs taken slots for that doctor/date
+  divider(`SLOTS FOR Dr. ${selectedDoctor.name} — ${formatDate(dateStr)}`);
+
+  // Get all appointments for that doctor on that day
+  let takenSlots = new Set();
+  try {
+    const allRes = await apiRequest("GET", "/appointments");
+    const allAppts = allRes.data || [];
+    takenSlots = new Set(
+      allAppts
+        .filter(
+          (a) =>
+            a.doctor_id === selectedDoctor.doctor_id &&
+            a.datetime.startsWith(dateStr) &&
+            !["Cancelled", "NoShow"].includes(a.status),
+        )
+        .map(
+          (a) =>
+            new Date(a.datetime).getHours() +
+            ":" +
+            String(new Date(a.datetime).getMinutes()).padStart(2, "0"),
+        ),
+    );
+  } catch {
+    /* show all as available if can't fetch */
+  }
+
+  // Generate time slots: 08:00–16:30 every 30 mins
+  const timeSlots = [];
+  for (let h = 8; h <= 16; h++) {
+    for (let m of [0, 30]) {
+      if (h === 16 && m === 30) continue;
+      timeSlots.push(
+        `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`,
+      );
+    }
+  }
+
+  const availableSlots = timeSlots.filter((t) => !takenSlots.has(t));
+
+  console.log(`\n  ${C.bold}Time Slot Availability:${C.reset}\n`);
+  // Print in columns
+  const cols = 4;
+  const rows = Math.ceil(timeSlots.length / cols);
+  const grid = [];
+  for (let r = 0; r < rows; r++) {
+    let row = "  ";
+    for (let c = 0; c < cols; c++) {
+      const slot = timeSlots[r + c * rows];
+      if (!slot) {
+        row += " ".repeat(16);
+        continue;
+      }
+      const taken = takenSlots.has(slot);
+      if (taken) {
+        row += `${C.red}✖ ${slot}${C.reset}      `.substring(0, 16);
+      } else {
+        const idx = availableSlots.indexOf(slot) + 1;
+        row +=
+          `${C.green}${C.bold}${idx < 10 ? " " : ""}${idx}. ${slot}${C.reset}  `.substring(
+            0,
+            16,
+          );
+      }
+    }
+    grid.push(row);
+  }
+  grid.forEach((r) => console.log(r));
+
+  console.log(
+    `\n  ${C.green}Green = Available${C.reset}   ${C.red}Red = Taken${C.reset}`,
+  );
+  console.log(
+    `  ${C.dim}Total available: ${availableSlots.length} / ${timeSlots.length} slots${C.reset}`,
+  );
+  console.log(`\n  ${C.bold}0.${C.reset} ${C.dim}← Back${C.reset}`);
+
+  if (availableSlots.length === 0) {
+    warn(
+      "No available slots for this doctor on this date. Please choose another date.",
+    );
+    await pressEnter();
+    return;
+  }
+
+  const slotChoice = parseInt(
+    await ask(`\n  Select slot number [1–${availableSlots.length}]: `),
+  );
+  if (isNaN(slotChoice) || slotChoice === 0) return;
+  if (slotChoice < 1 || slotChoice > availableSlots.length) {
+    error("Invalid choice.");
+    await pressEnter();
+    return;
+  }
+
+  const selectedTime = availableSlots[slotChoice - 1];
+  const [hours, mins] = selectedTime.split(":").map(Number);
+  selectedDate.setHours(hours, mins, 0, 0);
+  const datetime = selectedDate.toISOString();
+
+  // Step 4: Reason
+  const reason =
+    (
+      await ask(`\n  ${C.bold}Reason for visit (optional):${C.reset} `)
+    ).trim() || null;
+
+  // Confirm
+  divider("CONFIRM BOOKING");
+  console.log(`  ${C.bold}Doctor:${C.reset} Dr. ${selectedDoctor.name}`);
+  console.log(`  ${C.bold}Date:${C.reset}   ${formatDate(dateStr)}`);
+  console.log(`  ${C.bold}Time:${C.reset}   ${selectedTime}`);
+  if (reason) console.log(`  ${C.bold}Reason:${C.reset} ${reason}`);
+  divider();
+
+  const confirm = (await ask(`\n  Confirm booking? (y/n): `))
+    .trim()
+    .toLowerCase();
+  if (confirm !== "y") {
+    info("Booking cancelled.");
+    await pressEnter();
+    return;
+  }
+
+  try {
+    const res = await apiRequest("POST", "/appointments", {
+      patient_id: session.patient_id,
+      doctor_id: selectedDoctor.doctor_id,
+      datetime,
+      reason,
+    });
+
+    success("Appointment booked successfully!");
+    const appt = res.data;
+    console.log(
+      `\n  ${C.bold}Appointment ID:${C.reset} ${appt.appointment_id}`,
+    );
+    console.log(
+      `  ${C.bold}Status:${C.reset}         ${statusBadge(appt.status)}`,
+    );
+    info("Please arrive 10 minutes early. Bring your ID.");
+  } catch (err) {
+    error(`Booking failed: ${err.message}`);
+  }
+
+  await pressEnter();
+}
+
+// ─────────────────────────────────────────────────────────────
+//  CANCEL APPOINTMENT
+// ─────────────────────────────────────────────────────────────
+async function cancelAppointment() {
+  clear();
+  banner("Cancel an Appointment", `Patient ID: ${session.patient_id}`);
+
+  try {
+    const res = await apiRequest(
+      "GET",
+      `/patients/${session.patient_id}/appointments`,
+    );
+    const cancellable = (res.data || []).filter(
+      (a) => ["Booked"].includes(a.status) && new Date(a.datetime) > new Date(),
+    );
+
+    if (!cancellable.length) {
+      info("You have no upcoming appointments that can be cancelled.");
+      await pressEnter();
+      return;
+    }
+
+    divider("UPCOMING APPOINTMENTS");
+    cancellable.forEach((a, i) => {
+      console.log(
+        `\n  ${C.bold}${i + 1}.${C.reset} ${formatDateTime(a.datetime)}`,
+      );
+      console.log(
+        `     Dr. ${a.doctors?.name || "N/A"} — ${a.doctors?.department || ""}`,
+      );
+      if (a.reason) console.log(`     ${C.dim}Reason: ${a.reason}${C.reset}`);
+    });
+    console.log(`\n  ${C.bold}0.${C.reset} ${C.dim}← Back${C.reset}`);
+
+    const choice = parseInt(
+      await ask(`\n  Which appointment to cancel [0–${cancellable.length}]: `),
+    );
+    if (isNaN(choice) || choice === 0) return;
+    if (choice < 1 || choice > cancellable.length) {
+      error("Invalid choice.");
+      await pressEnter();
+      return;
+    }
+
+    const appt = cancellable[choice - 1];
+    const confirm = (
+      await ask(
+        `\n  Cancel appointment on ${formatDateTime(appt.datetime)}? (y/n): `,
+      )
+    )
+      .trim()
+      .toLowerCase();
+    if (confirm !== "y") {
+      info("Cancellation aborted.");
+      await pressEnter();
+      return;
+    }
+
+    await apiRequest("PATCH", `/appointments/${appt.appointment_id}/status`, {
+      status: "Cancelled",
+    });
+    success("Appointment cancelled successfully.");
+  } catch (err) {
+    error(`Could not cancel appointment: ${err.message}`);
+  }
+
+  await pressEnter();
+}
+
+// ─────────────────────────────────────────────────────────────
+//  VIEW MY PROFILE
+// ─────────────────────────────────────────────────────────────
+async function viewProfile() {
+  clear();
+  banner("My Profile", `Logged in as ${session.email}`);
+
+  try {
+    const res = await apiRequest("GET", `/patients/${session.patient_id}`);
+    const p = res.data;
+
+    divider("PATIENT DETAILS");
+    console.log(`  ${C.bold}Patient ID:${C.reset}   ${p.patient_id}`);
+    console.log(`  ${C.bold}Full Name:${C.reset}    ${p.full_name}`);
+    console.log(`  ${C.bold}ID Number:${C.reset}    ${p.id_number}`);
+    console.log(
+      `  ${C.bold}Email:${C.reset}        ${p.email || "Not provided"}`,
+    );
+    console.log(
+      `  ${C.bold}Date of Birth:${C.reset}${p.dob ? " " + formatDate(p.dob) : " Not provided"}`,
+    );
+    console.log(
+      `  ${C.bold}Contact:${C.reset}      ${p.contact || "Not provided"}`,
+    );
+    console.log(
+      `  ${C.bold}Registered:${C.reset}   ${formatDate(p.created_at)}`,
+    );
+  } catch (err) {
+    error(`Could not load profile: ${err.message}`);
+  }
+
+  await pressEnter();
+}
+
+// ─────────────────────────────────────────────────────────────
+//  BROWSE AVAILABLE SLOTS (without booking)
+// ─────────────────────────────────────────────────────────────
+async function browseDoctorSlots() {
+  clear();
+  banner("Browse Available Slots", "Check availability for any doctor");
+
+  let doctors = [];
+  try {
+    const res = await apiRequest("GET", "/doctors");
+    doctors = res.data;
+  } catch (err) {
+    error(`Could not load doctors: ${err.message}`);
+    await pressEnter();
+    return;
+  }
+
+  divider("DOCTORS");
+  doctors.forEach((d, i) => {
+    console.log(
+      `  ${C.bold}${i + 1}.${C.reset} Dr. ${d.name}${d.specialisation ? ` — ${C.dim}${d.specialisation}${C.reset}` : ""}`,
+    );
+  });
+  console.log(`  ${C.bold}0.${C.reset} ${C.dim}← Back${C.reset}`);
+
+  const docChoice = parseInt(await ask(`\n  Choose doctor: `));
+  if (isNaN(docChoice) || docChoice === 0) return;
+  if (docChoice < 1 || docChoice > doctors.length) {
+    error("Invalid choice.");
+    await pressEnter();
+    return;
+  }
+  const doc = doctors[docChoice - 1];
+
+  // Show next 5 working days
+  const today = new Date();
+  let allAppts = [];
+  try {
+    const allRes = await apiRequest("GET", "/appointments");
+    allAppts = allRes.data || [];
+  } catch {
+    /* ignore */
+  }
+
+  const workDays = [];
+  for (let d = 1; workDays.length < 5; d++) {
+    const dt = new Date(today);
+    dt.setDate(today.getDate() + d);
+    if (dt.getDay() !== 0) workDays.push(dt);
+  }
+
+  for (const day of workDays) {
+    const dateStr = day.toISOString().split("T")[0];
+    const takenSlots = new Set(
+      allAppts
+        .filter(
+          (a) =>
+            a.doctor_id === doc.doctor_id &&
+            a.datetime.startsWith(dateStr) &&
+            !["Cancelled", "NoShow"].includes(a.status),
+        )
+        .map((a) => {
+          const d2 = new Date(a.datetime);
+          return `${String(d2.getHours()).padStart(2, "0")}:${String(d2.getMinutes()).padStart(2, "0")}`;
+        }),
+    );
+
+    const timeSlots = [];
+    for (let h = 8; h <= 16; h++) {
+      for (let m of [0, 30]) {
+        if (h === 16 && m === 30) continue;
+        timeSlots.push(
+          `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`,
+        );
+      }
+    }
+    const avail = timeSlots.filter((t) => !takenSlots.has(t)).length;
+    const taken = takenSlots.size;
+
+    const label = day.toLocaleDateString("en-ZA", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+    const bar = `${C.green}${"■".repeat(Math.round(avail / 2))}${C.reset}${C.red}${"■".repeat(Math.round(taken / 2))}${C.reset}`;
+    console.log(
+      `  ${C.bold}${label}:${C.reset} ${bar}  ${C.green}${avail} free${C.reset}, ${C.red}${taken} taken${C.reset}`,
+    );
+  }
+
+  await pressEnter();
+}
+
+// ─────────────────────────────────────────────────────────────
+//  MAIN MENUS
+// ─────────────────────────────────────────────────────────────
+async function patientMenu() {
+  while (true) {
+    clear();
+    banner(
+      `Welcome, ${session.full_name}`,
+      `Patient ID: ${session.patient_id}`,
+    );
+
+    console.log(`  ${C.bold}1.${C.reset}  📅  View My Appointments`);
+    console.log(`  ${C.bold}2.${C.reset}  ➕  Book an Appointment`);
+    console.log(`  ${C.bold}3.${C.reset}  ❌  Cancel an Appointment`);
+    console.log(`  ${C.bold}4.${C.reset}  🔍  Browse Doctor Availability`);
+    console.log(`  ${C.bold}5.${C.reset}  👤  My Profile`);
+    console.log(`  ${C.bold}0.${C.reset}  🚪  Log Out`);
+    divider();
+
+    const choice = (await ask(`\n  Choose an option: `)).trim();
+
+    switch (choice) {
+      case "1":
+        await viewAppointments();
+        break;
+      case "2":
+        await bookAppointment();
+        break;
+      case "3":
+        await cancelAppointment();
+        break;
+      case "4":
+        await browseDoctorSlots();
+        break;
+      case "5":
+        await viewProfile();
+        break;
+      case "0":
+        session = null;
+        info("You have been logged out.");
+        await pressEnter();
+        return;
+      default:
+        warn("Invalid option. Please choose from the menu.");
+        await pressEnter();
+    }
+  }
+}
+
+async function mainMenu() {
+  while (true) {
+    clear();
+    banner("Welcome to SmartClinic", "Patient Self-Service Terminal");
+
+    console.log(`  ${C.bold}1.${C.reset}  🔐  Login`);
+    console.log(`  ${C.bold}2.${C.reset}  📝  Register as a New Patient`);
+    console.log(`  ${C.bold}0.${C.reset}  🚪  Exit`);
+    divider();
+
+    const choice = (await ask(`\n  Choose an option: `)).trim();
+
+    switch (choice) {
+      case "1":
+        await login();
+        if (session) await patientMenu();
+        break;
+      case "2":
+        await register();
+        break;
+      case "0":
+        clear();
+        console.log(
+          `\n${C.cyan}Thank you for using SmartClinic. Goodbye!${C.reset}\n`,
+        );
+        rl.close();
+        process.exit(0);
+      default:
+        warn("Invalid option.");
+        await pressEnter();
+    }
+  }
+}
+
+// ── Boot ─────────────────────────────────────────────────────
+(async () => {
+  // Verify server is reachable
+  try {
+    await apiRequest("GET", "/doctors");
+  } catch (e) {
+    clear();
+    console.log(
+      `\n${C.red}${C.bold}⚠  Cannot connect to SmartClinic server${C.reset}`,
+    );
+    console.log(`${C.dim}  Expected: ${API_BASE}`);
+    console.log(
+      `  Start the backend with: cd backend && node server.js${C.reset}`,
+    );
+    console.log(`\n  You can also set the API URL with:`);
+    console.log(
+      `  ${C.cyan}SMARTCLINIC_API=http://your-server:3000/api node patient-portal.js${C.reset}\n`,
+    );
+    rl.close();
+    process.exit(1);
+  }
+
+  await mainMenu();
+})();

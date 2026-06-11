@@ -89,6 +89,7 @@ async function http(method, path, body = null) {
     const opts = {
       method,
       headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
     };
     if (body) opts.body = JSON.stringify(body);
     const res  = await fetch(API + path, opts);
@@ -109,6 +110,11 @@ const api = {
   login: (email, password) =>
     http('POST', '/auth/login', { email, password }),
 
+  // USERS (staff)
+  createUser: (data) => http('POST', '/auth/users', data),
+  updateUser: (id, data) => http('PUT', '/auth/users/'+id, data),
+  deleteUser: (id) => http('DELETE', '/auth/users/'+id),
+
   // PATIENTS
   getPatients:   ()     => http('GET',    '/patients'),
   createPatient: (data) => http('POST',   '/patients', data),
@@ -117,12 +123,18 @@ const api = {
 
   // DOCTORS
   getDoctors: () => http('GET', '/doctors'),
+  createDoctor: (data) => http('POST', '/doctors', data),
+  updateDoctor: (id, data) => http('PUT', '/doctors/'+id, data),
+  deleteDoctor: (id) => http('DELETE', '/doctors/'+id),
 
   // APPOINTMENTS
   getAppointments:      ()     => http('GET',   '/appointments'),
+  getAppointment:       (id)   => http('GET',   '/appointments/'+id),
   getTodayAppointments: ()     => http('GET',   '/appointments/today'),
   createAppointment:    (data) => http('POST',  '/appointments', data),
+  updateAppointment:    (id, data) => http('PUT', '/appointments/'+id, data),
   updateApptStatus:     (id, status) => http('PATCH', '/appointments/'+id+'/status', { status }),
+  deleteAppointment:    (id) => http('DELETE', '/appointments/'+id),
 
   // QUEUE
   checkin:          (appointment_id, source) => http('POST',  '/queue/checkin', { appointment_id, source }),

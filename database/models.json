@@ -1,0 +1,362 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-08-14T12:00:00Z",
+  "patients": [
+    {
+      "patient_id": "SC_001",
+      "full_name": "Zanele Dlamini",
+      "id_number": "9001015800088",
+      "dob": "1990-01-01",
+      "contact": "073 456 7890",
+      "email": "zanele@smartclinic.co.za",
+      "address": "123 Main Street, Johannesburg",
+      "created_at": "2026-03-03T08:30:00Z"
+    },
+    {
+      "patient_id": "SC_002",
+      "full_name": "Thabo Mokoena",
+      "id_number": "9502025802086",
+      "dob": "1995-02-02",
+      "contact": "082 555 1234",
+      "email": "thabo@smartclinic.co.za",
+      "address": "45 Soweto Avenue, Soweto",
+      "created_at": "2026-03-10T10:15:00Z"
+    },
+    {
+      "patient_id": "SC_003",
+      "full_name": "Lerato Khumalo",
+      "id_number": "8803035803084",
+      "dob": "1988-03-03",
+      "contact": "071 234 5678",
+      "email": "lerato@smartclinic.co.za",
+      "address": "12 Durban Road, Durban",
+      "created_at": "2026-03-15T09:45:00Z"
+    },
+    {
+      "patient_id": "SC_004",
+      "full_name": "Sipho Ndlovu",
+      "id_number": "9204155804082",
+      "dob": "1992-04-15",
+      "contact": "083 123 4567",
+      "email": "sipho@smartclinic.co.za",
+      "address": "78 Cape Town Street, Cape Town",
+      "created_at": "2026-04-20T11:00:00Z"
+    },
+    {
+      "patient_id": "SC_005",
+      "full_name": "Mary Mbeki",
+      "id_number": "8506305805080",
+      "dob": "1985-06-30",
+      "contact": "074 987 6543",
+      "email": "mary@smartclinic.co.za",
+      "address": "22 Pretoria Road, Pretoria",
+      "created_at": "2026-05-05T13:20:00Z"
+    },
+    {
+      "patient_id": "SC_006",
+      "full_name": "James Peterson",
+      "id_number": "7812125806087",
+      "dob": "1978-12-12",
+      "contact": "081 444 5555",
+      "email": "james@smartclinic.co.za",
+      "address": "55 Bloemfontein Ave, Bloemfontein",
+      "created_at": "2026-06-18T08:00:00Z"
+    }
+  ],
+  "doctors": [
+    {
+      "id": "doc1",
+      "name": "Dr M. Nkosi",
+      "specialty": "General Practice",
+      "phone": "011 234 5678",
+      "email": "nkosi@smartclinic.co.za",
+      "bio": "15+ years experience in family medicine. Specializes in chronic disease management.",
+      "availability": {
+        "Monday": ["09:00", "11:00", "14:00"],
+        "Tuesday": ["10:00", "14:00", "15:30"],
+        "Wednesday": ["09:00", "11:00"],
+        "Thursday": ["09:00", "15:00"],
+        "Friday": ["09:00", "10:00"]
+      }
+    },
+    {
+      "id": "doc2",
+      "name": "Dr R. Patel",
+      "specialty": "Pediatrics",
+      "phone": "011 234 5679",
+      "email": "patel@smartclinic.co.za",
+      "bio": "Child health specialist with 10 years experience.",
+      "availability": {
+        "Monday": ["09:00", "13:00"],
+        "Tuesday": ["09:00", "14:00"],
+        "Wednesday": ["10:00", "15:00"],
+        "Thursday": ["09:00", "11:00"],
+        "Friday": ["09:00", "12:00"]
+      }
+    },
+    {
+      "id": "doc3",
+      "name": "Dr S. Williams",
+      "specialty": "Internal Medicine",
+      "phone": "011 234 5680",
+      "email": "williams@smartclinic.co.za",
+      "bio": "Chronic disease management specialist.",
+      "availability": {
+        "Monday": ["10:00", "14:00"],
+        "Tuesday": ["09:00", "13:00"],
+        "Wednesday": ["09:00", "14:00"],
+        "Thursday": ["10:00", "15:00"],
+        "Friday": ["09:00", "11:00"]
+      }
+    }
+  ],
+  "nurses": [
+    {
+      "id": "nurse1",
+      "name": "Nurse J. Molefe",
+      "specialty": "Registered Nurse",
+      "phone": "011 234 5681",
+      "email": "jmolefe@smartclinic.co.za",
+      "bio": "Dedicated to patient care with 8 years experience.",
+      "duties": ["Vitals", "Triage", "Wound Care", "Patient Education"]
+    },
+    {
+      "id": "nurse2",
+      "name": "Nurse P. Dube",
+      "specialty": "Clinical Nurse",
+      "phone": "011 234 5682",
+      "email": "pdube@smartclinic.co.za",
+      "bio": "Medication preparation and administration specialist.",
+      "duties": ["Vitals", "Medication Prep", "Patient Education", "ECG"]
+    }
+  ],
+  "appointments": [
+    {
+      "id": "APT_001",
+      "patientId": "SC_001",
+      "patientName": "Zanele Dlamini",
+      "doctorId": "doc1",
+      "doctorName": "Dr M. Nkosi",
+      "datetime": "2026-08-15T09:00:00",
+      "reason": "Persistent cough with fever",
+      "status": "upcoming",
+      "created_at": "2026-08-01T09:00:00Z"
+    },
+    {
+      "id": "APT_002",
+      "patientId": "SC_002",
+      "patientName": "Thabo Mokoena",
+      "doctorId": "doc1",
+      "doctorName": "Dr M. Nkosi",
+      "datetime": "2026-08-15T10:30:00",
+      "reason": "Hypertension follow-up - high BP reading",
+      "status": "upcoming",
+      "created_at": "2026-08-02T10:30:00Z"
+    },
+    {
+      "id": "APT_003",
+      "patientId": "SC_003",
+      "patientName": "Lerato Khumalo",
+      "doctorId": "doc2",
+      "doctorName": "Dr R. Patel",
+      "datetime": "2026-08-16T11:00:00",
+      "reason": "Child vaccination and checkup",
+      "status": "upcoming",
+      "created_at": "2026-08-03T11:00:00Z"
+    },
+    {
+      "id": "APT_004",
+      "patientId": "SC_004",
+      "patientName": "Sipho Ndlovu",
+      "doctorId": "doc3",
+      "doctorName": "Dr S. Williams",
+      "datetime": "2026-08-14T14:00:00",
+      "reason": "Diabetes management review",
+      "status": "completed",
+      "created_at": "2026-08-05T14:00:00Z"
+    },
+    {
+      "id": "APT_005",
+      "patientId": "SC_005",
+      "patientName": "Mary Mbeki",
+      "doctorId": "doc1",
+      "doctorName": "Dr M. Nkosi",
+      "datetime": "2026-08-17T09:30:00",
+      "reason": "Annual physical examination",
+      "status": "upcoming",
+      "created_at": "2026-08-06T09:30:00Z"
+    },
+    {
+      "id": "APT_006",
+      "patientId": "SC_006",
+      "patientName": "James Peterson",
+      "doctorId": "doc1",
+      "doctorName": "Dr M. Nkosi",
+      "datetime": "2026-08-18T15:00:00",
+      "reason": "Chest pain evaluation",
+      "status": "upcoming",
+      "created_at": "2026-08-07T15:00:00Z"
+    }
+  ],
+  "doctorQueue": [
+    {
+      "id": "handoff_001",
+      "patient_id": "SC_002",
+      "patient_name": "Thabo Mokoena",
+      "vitals_summary": "BP: 145/92, HR: 88, Temp: 36.8°C",
+      "nurse_notes": "Patient reports headache. BP elevated. Needs doctor review for medication adjustment.",
+      "handed_by": "Nurse J. Molefe",
+      "handed_at": "2026-08-14T09:15:00Z"
+    },
+    {
+      "id": "handoff_002",
+      "patient_id": "SC_005",
+      "patient_name": "Mary Mbeki",
+      "vitals_summary": "BP: 128/82, HR: 72, Temp: 37.1°C, Weight: 78kg",
+      "nurse_notes": "Routine vitals taken. Patient ready for annual physical.",
+      "handed_by": "Nurse P. Dube",
+      "handed_at": "2026-08-14T10:00:00Z"
+    }
+  ],
+  "activeDoctorConsult": null,
+  "nurseQueue": [
+    {
+      "id": 101,
+      "patient_id": "SC_001",
+      "patient_name": "Zanele Dlamini",
+      "status": "waiting_nurse",
+      "reason": "Cough, fever, fatigue",
+      "checkin_time": "2026-08-14T08:30:00Z",
+      "priority": "normal"
+    },
+    {
+      "id": 102,
+      "patient_id": "SC_003",
+      "patient_name": "Lerato Khumalo",
+      "status": "waiting_nurse",
+      "reason": "Child checkup - fever",
+      "checkin_time": "2026-08-14T09:00:00Z",
+      "priority": "urgent"
+    },
+    {
+      "id": 103,
+      "patient_id": "SC_006",
+      "patient_name": "James Peterson",
+      "status": "waiting_nurse",
+      "reason": "Chest pain - needs immediate vitals",
+      "checkin_time": "2026-08-14T09:45:00Z",
+      "priority": "high"
+    }
+  ],
+  "activeNurseConsult": null,
+  "prescriptions": [
+    {
+      "id": "RX_001",
+      "patientId": "SC_004",
+      "patientName": "Sipho Ndlovu",
+      "doctorId": "doc3",
+      "doctorName": "Dr S. Williams",
+      "medication": "Metformin 500mg",
+      "dosage": "Twice daily with meals",
+      "diagnosis": "Type 2 Diabetes - controlled",
+      "date": "2026-08-14T14:30:00Z",
+      "status": "active"
+    },
+    {
+      "id": "RX_002",
+      "patientId": "SC_002",
+      "patientName": "Thabo Mokoena",
+      "doctorId": "doc1",
+      "doctorName": "Dr M. Nkosi",
+      "medication": "Amlodipine 5mg",
+      "dosage": "Once daily in the morning",
+      "diagnosis": "Hypertension Stage 1",
+      "date": "2026-08-10T11:00:00Z",
+      "status": "active"
+    },
+    {
+      "id": "RX_003",
+      "patientId": "SC_001",
+      "patientName": "Zanele Dlamini",
+      "doctorId": "doc1",
+      "doctorName": "Dr M. Nkosi",
+      "medication": "Amoxicillin 500mg",
+      "dosage": "Three times daily for 7 days",
+      "diagnosis": "Upper Respiratory Infection",
+      "date": "2026-08-05T10:00:00Z",
+      "status": "completed"
+    },
+    {
+      "id": "RX_004",
+      "patientId": "SC_003",
+      "patientName": "Lerato Khumalo",
+      "doctorId": "doc2",
+      "doctorName": "Dr R. Patel",
+      "medication": "Paracetamol 120mg/5ml",
+      "dosage": "5ml every 6 hours as needed",
+      "diagnosis": "Fever - post vaccination",
+      "date": "2026-08-01T13:00:00Z",
+      "status": "active"
+    },
+    {
+      "id": "RX_005",
+      "patientId": "SC_005",
+      "patientName": "Mary Mbeki",
+      "doctorId": "doc1",
+      "doctorName": "Dr M. Nkosi",
+      "medication": "Lisinopril 10mg",
+      "dosage": "Once daily",
+      "diagnosis": "Hypertension maintenance",
+      "date": "2026-07-28T09:30:00Z",
+      "status": "active"
+    }
+  ],
+  "consultation_durations": [14, 22, 18, 25, 12, 19, 31, 16],
+  "notifications": [
+    {
+      "type": "handoff",
+      "message": "Nurse J. Molefe handed over patient Thabo Mokoena with elevated BP",
+      "createdAt": "2026-08-14T09:20:00Z"
+    },
+    {
+      "type": "reminder",
+      "message": "Appointment with Zanele Dlamini in 30 minutes",
+      "createdAt": "2026-08-14T08:30:00Z"
+    },
+    {
+      "type": "referral",
+      "message": "Dr R. Patel referred patient Lerato Khumalo for wound care",
+      "createdAt": "2026-08-13T16:00:00Z"
+    },
+    {
+      "type": "completed",
+      "message": "Consultation with Sipho Ndlovu completed (25 min)",
+      "createdAt": "2026-08-13T14:30:00Z"
+    }
+  ],
+  "completedHandoffs": [
+    {
+      "patient_name": "Sipho Ndlovu",
+      "doctor_name": "Dr S. Williams",
+      "completedAt": "2026-08-13T14:25:00Z",
+      "vitals": "BP: 135/85, HR: 76, Temp: 36.5°C"
+    },
+    {
+      "patient_name": "Mary Mbeki",
+      "doctor_name": "Dr M. Nkosi",
+      "completedAt": "2026-08-12T11:00:00Z",
+      "vitals": "BP: 130/80, HR: 70, Temp: 36.9°C"
+    }
+  ],
+  "walkin_counter": 42,
+  "system_settings": {
+    "clinic_name": "SmartClinic Health Center",
+    "clinic_phone": "011 234 5600",
+    "clinic_email": "info@smartclinic.co.za",
+    "clinic_address": "123 Medical District, Johannesburg",
+    "queue_estimated_wait": 15,
+    "appointment_reminder_minutes": 60,
+    "patient_id_format": "SC_XXX",
+    "walkin_ticket_format": "AXXX"
+  }
+}
